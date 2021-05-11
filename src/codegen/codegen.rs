@@ -1,7 +1,7 @@
 use crate::parser::ast_utils::*;
 use crate::parser::ast_printer::print_ast_node;
 
-// ARM64 assembly codegen
+// AMD64 assembly codegen
 
 pub struct Codegen {
     pub ast: Vec<ASTNode>,
