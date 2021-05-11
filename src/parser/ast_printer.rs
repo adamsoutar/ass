@@ -33,5 +33,9 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
                 print_ast_node(stmt, depth + 1)
             }
         }
+        ASTNode::UnaryOperation(unar) => {
+            print_at_depth(format!("Unary operation: {}", unar.operator), depth);
+            print_ast_node(&unar.operand, depth + 1);
+        }
     }
 }

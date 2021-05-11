@@ -4,7 +4,8 @@ pub enum ASTNode {
     Identifier(String),
     ReturnStatement(Box<ASTNode>),
     BlockStatement(Vec<ASTNode>),
-    FunctionDefinition(ASTFunctionDefinition)
+    FunctionDefinition(ASTFunctionDefinition),
+    UnaryOperation(ASTUnaryOperation)
 }
 
 #[derive(Clone, PartialEq)]
@@ -13,4 +14,10 @@ pub struct ASTFunctionDefinition {
     pub body: Vec<ASTNode>,
     // Unused for now, everything is an int
     // pub returnType: Box<ASTNode>
+}
+
+#[derive(Clone, PartialEq)]
+pub struct ASTUnaryOperation {
+    pub operator: String,
+    pub operand: Box<ASTNode>
 }

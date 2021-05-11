@@ -49,7 +49,8 @@ pub fn is_operator(s: &String) -> bool {
         "=", "==", "+", "-", "*", "/",
         "!=", "**", "%", "&&", "||",
         ">", "<", ">=", "<=", "+=", "*=",
-        "-=", "/=", "%=", "**="
+        "-=", "/=", "%=", "**=",  "!",
+        "~", "&", "--", "++"
     ])
 }
 pub fn is_assignment_operator (s: &String) -> bool {
@@ -61,8 +62,17 @@ pub fn is_assignment_operator (s: &String) -> bool {
         "**="
     ])
 }
+pub fn is_unary_operator (s: &String) -> bool {
+    // NOTE: When these are AST Transformed (*= etc),
+    //       the string without the = char is assumed to be a
+    //       valid binary operator.
+    in_string_vector(s, vec![
+        "!", "~", "&", "*", "+", "-",
+        "--", "++"
+    ])
+}
 pub fn is_binary_operator (s: &String) -> bool {
-    is_operator(s) && !is_assignment_operator(s)
+    is_operator(s) && !is_assignment_operator(s) && !is_unary_operator(s)
 }
 pub fn get_operator_precedence (s: &String) -> i32 {
     let sstr = &s[..];

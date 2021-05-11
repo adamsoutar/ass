@@ -47,10 +47,23 @@ impl Parser {
 
         match t {
             Token::Integer(int) => return ASTNode::IntegerLiteral(int),
+            Token::Operator(oper) => return self.parse_unary_operation(oper),
             _ => {}
         }
 
         self.parse_statement(t)
+    }
+
+    fn parse_unary_operation (&mut self, oper: String) -> ASTNode {
+        if !is_unary_operator(&oper) {
+            panic!("\"{}\" was used as a unary operator but it isn't one", oper);
+        }
+
+        let operand = self.parse_atom();
+        ASTNode::UnaryOperation(ASTUnaryOperation {
+            operator: oper,
+            operand: Box::new(operand)
+        })
     }
 
     // NOTE: "int" is the only type for now

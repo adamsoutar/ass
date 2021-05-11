@@ -25,9 +25,25 @@ impl Tokeniser {
             self.current = self.read_identifier(c);
         } else if is_punctuation(&c) {
             self.current = Token::Punctuation(c);
+        } else if is_operator_char(&c) {
+            self.current = self.read_operator(c);
         } else {
             panic!("Unrecognised character \"{}\"", c)
         }
+    }
+
+    fn read_operator (&mut self, first: char) -> Token {
+        let mut oper = vec![first];
+        while !self.code.eof && is_operator_char(&self.code.peek()) {
+            oper.push(self.code.read())
+        }
+        let op_str = String::from_iter(oper);
+
+        if !is_operator(&op_str) {
+            panic!("\"{}\" is not an operator", op_str)
+        }
+
+        Token::Operator(op_str)
     }
 
     fn read_identifier (&mut self, first: char) -> Token {
