@@ -1,3 +1,6 @@
+use std::env;
+use std::fs;
+
 mod parser;
 mod codegen;
 
@@ -8,11 +11,10 @@ use parser::ast_printer::print_ast_node;
 use codegen::codegen::Codegen;
 
 fn main() {
-    let code = "
-int main () {
-    return 2;
-}
-    ".to_string();
+    let filename = env::args().nth(1)
+        .expect("Pass a C file path argument");
+    let code = fs::read_to_string(filename)
+        .expect("Failed to open code file for reading");
 
     let stream = CharStream::new(code);
     let tokeniser = Tokeniser::new(stream);
