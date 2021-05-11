@@ -6,7 +6,7 @@ RUST_BACKTRACE=1 cargo run input.c > output.s && \
 gcc output.s -o output && \
 
 # Run output
-./output && \
+./output
 
 # Print exit code
 echo $?

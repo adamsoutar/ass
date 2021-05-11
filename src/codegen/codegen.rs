@@ -1,4 +1,4 @@
-use crate::parser::ast_utils::ASTNode;
+use crate::parser::ast_utils::*;
 use crate::parser::ast_printer::print_ast_node;
 
 // ARM64 assembly codegen
@@ -33,13 +33,27 @@ impl Codegen {
             },
             ASTNode::ReturnStatement(ret) => {
                 // Value will be in EAX
-                self.emit_for_node(ret.as_ref());
+                self.emit_for_node(&ret);
                 self.emit("ret".to_string())
+            },
+            ASTNode::UnaryOperation(unar) => {
+                self.emit_for_unary_operator(unar)
             },
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")
             }
+        }
+    }
+
+    fn emit_for_unary_operator (&mut self, unar: &ASTUnaryOperation) {
+        self.emit_for_node(&unar.operand);
+
+        match &unar.operator[..] {
+            "-" => {
+                self.emit("neg %eax".to_string())
+            },
+            _ => panic!("Codegen unimplemented for unary operator \"{}\"", unar.operator)
         }
     }
 
