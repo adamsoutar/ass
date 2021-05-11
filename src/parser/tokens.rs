@@ -84,7 +84,7 @@ pub fn get_operator_precedence (s: &String) -> i32 {
 
 // Characters may be part of an operator, but not operators themselves
 pub fn is_operator_char (c: &char) -> bool {
-    in_char_string(c, "=!+-/*%&|<>")
+    in_char_string(c, "=!+-/*%&|<>~")
 }
 
 pub fn is_punctuation(c: &char) -> bool {

@@ -53,6 +53,9 @@ impl Codegen {
             "-" => {
                 self.emit("neg %eax".to_string())
             },
+            "~" => {
+                self.emit("not %eax".to_string())
+            },
             _ => panic!("Codegen unimplemented for unary operator \"{}\"", unar.operator)
         }
     }
