@@ -10,7 +10,7 @@ pub enum ASTNode {
 #[derive(Clone, PartialEq)]
 pub struct ASTFunctionDefinition {
     pub name: String,
-    pub body: Box<ASTNode>,
+    pub body: Vec<ASTNode>,
     // Unused for now, everything is an int
     // pub returnType: Box<ASTNode>
 }

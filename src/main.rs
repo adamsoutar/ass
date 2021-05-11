@@ -1,9 +1,11 @@
 mod parser;
+mod codegen;
 
 use parser::char_stream::CharStream;
 use parser::tokeniser::Tokeniser;
 use parser::parser::Parser;
 use parser::ast_printer::print_ast_node;
+use codegen::codegen::Codegen;
 
 fn main() {
     let code = "
@@ -18,7 +20,12 @@ int main () {
 
     let ast = parser.generate_ast();
 
-    for node in ast {
-        print_ast_node(&node, 0);
-    }
+    // for node in &ast {
+    //     print_ast_node(node, 0);
+    // }
+
+    let mut codegen = Codegen::new(ast);
+    codegen.generate();
+
+    print!("{}", codegen.generated)
 }

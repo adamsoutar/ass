@@ -91,7 +91,10 @@ impl Parser {
             // For now, we only support 0-arg functions
             self.expect_punctuation(')');
             let body_node = self.parse_block_statement(true, true);
-            let body = Box::new(body_node);
+            let body = match body_node {
+                ASTNode::BlockStatement(stmts) => stmts,
+                _ => unreachable!()
+            };
 
             return ASTNode::FunctionDefinition(ASTFunctionDefinition {
                 name,

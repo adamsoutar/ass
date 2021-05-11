@@ -29,7 +29,9 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
         },
         ASTNode::FunctionDefinition(func) => {
             print_at_depth(format!("Function: {}", func.name), depth);
-            print_ast_node(func.body.as_ref(), depth + 1)
+            for stmt in &func.body {
+                print_ast_node(stmt, depth + 1)
+            }
         }
     }
 }
