@@ -71,6 +71,15 @@ impl Parser {
     fn parse_atom (&mut self) -> ASTNode {
         let t = self.tokeniser.read();
 
+        if let Token::Punctuation(pnc) = t {
+            // Bracketed expressions
+            if pnc == '(' {
+                let contents = self.parse_component(0);
+                self.expect_punctuation(')');
+                return contents
+            }
+        }
+
         match t {
             Token::Integer(int) => return ASTNode::IntegerLiteral(int),
             Token::Operator(oper) => return self.parse_unary_operation(oper),
