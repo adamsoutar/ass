@@ -37,5 +37,10 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
             print_at_depth(format!("Unary operation: {}", unar.operator), depth);
             print_ast_node(&unar.operand, depth + 1);
         }
+        ASTNode::BinaryOperation(bin) => {
+            print_at_depth(format!("Binary operation: {}", bin.operator), depth);
+            print_ast_node(&bin.left_side, depth + 1);
+            print_ast_node(&bin.right_side, depth + 1)
+        }
     }
 }

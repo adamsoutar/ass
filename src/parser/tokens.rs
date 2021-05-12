@@ -72,12 +72,16 @@ pub fn is_unary_operator (s: &String) -> bool {
     ])
 }
 pub fn is_binary_operator (s: &String) -> bool {
-    is_operator(s) && !is_assignment_operator(s) && !is_unary_operator(s)
+    is_operator(s) && !is_assignment_operator(s)
 }
-pub fn get_operator_precedence (s: &String) -> i32 {
+pub fn get_operator_precedence (s: &String) -> usize {
     let sstr = &s[..];
     match sstr {
-        // TODO
+        "*" => 12,
+        "/" => 12,
+        "%" => 12,
+        "+" => 11,
+        "-" => 11,
         _ => 0
     }
 }

@@ -27,19 +27,45 @@ impl Parser {
                 break
             }
 
-            statements.push(self.parse_component())
+            statements.push(self.parse_component(0))
         }
 
         if expect_last { self.expect_punctuation('}') }
         ASTNode::BlockStatement(statements)
     }
 
-    fn parse_component (&mut self) -> ASTNode {
+    fn parse_component (&mut self, precedence: usize) -> ASTNode {
         let mut node = self.parse_atom();
 
-        // TODO: Check for binary operators, calls, etc.
+        // TODO: Check for calls, array access, etc.
 
-        node
+        self.maybe_binary_operation(node, precedence)
+    }
+
+    fn maybe_binary_operation (&mut self, me: ASTNode, my_precedence: usize) -> ASTNode {
+        let t = self.tokeniser.peek().clone();
+
+        if let Token::Operator(op) = t {
+            if is_binary_operator(&op) {
+                let their_prec = get_operator_precedence(&op);
+
+                if their_prec > my_precedence {
+                    self.tokeniser.read();
+
+                    let them = self.parse_component(their_prec);
+
+                    let node = ASTNode::BinaryOperation(ASTBinaryOperation {
+                        left_side: Box::new(me),
+                        operator: op,
+                        right_side: Box::new(them)
+                    });
+
+                    return self.maybe_binary_operation(node, my_precedence)
+                }
+            }
+        }
+
+        me
     }
 
     fn parse_atom (&mut self) -> ASTNode {
@@ -82,7 +108,7 @@ impl Parser {
     }
 
     fn parse_return_statement (&mut self) -> ASTNode {
-        let ret_val = self.parse_component();
+        let ret_val = self.parse_component(0);
         self.expect_punctuation(';');
         ASTNode::ReturnStatement(Box::new(ret_val))
     }
