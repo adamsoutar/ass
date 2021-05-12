@@ -74,6 +74,14 @@ pub fn is_unary_operator (s: &String) -> bool {
 pub fn is_binary_operator (s: &String) -> bool {
     is_operator(s) && !is_assignment_operator(s)
 }
+// Just a little shortcut because stack-based maths operators
+// can share very similar setup assembly
+pub fn is_binary_maths_operator (s: &String) -> bool {
+    in_string_vector(s, vec![
+        "+", "-", "/", "*",
+        "%", "**"
+    ])
+}
 pub fn get_operator_precedence (s: &String) -> usize {
     let sstr = &s[..];
     match sstr {

@@ -1,4 +1,5 @@
 use crate::parser::ast_utils::*;
+use crate::parser::tokens::*;
 use crate::parser::ast_printer::print_ast_node;
 
 // AMD64 assembly codegen
@@ -32,12 +33,14 @@ impl Codegen {
                 self.emit(format!("movl ${}, %eax", int))
             },
             ASTNode::ReturnStatement(ret) => {
-                // Value will be in EAX
                 self.emit_for_node(&ret);
                 self.emit_str("ret")
             },
             ASTNode::UnaryOperation(unar) => {
-                self.emit_for_unary_operator(unar)
+                self.emit_for_unary_operation(unar)
+            },
+            ASTNode::BinaryOperation(bin) => {
+                self.emit_for_binary_operation(bin)
             },
             _ => {
                 print_ast_node(node, 0);
@@ -46,7 +49,25 @@ impl Codegen {
         }
     }
 
-    fn emit_for_unary_operator (&mut self, unar: &ASTUnaryOperation) {
+    fn emit_for_binary_operation (&mut self, bin: &ASTBinaryOperation) {
+        if is_binary_maths_operator(&bin.operator) {
+            // Emit maths precursor
+            self.emit_for_node(&bin.left_side);
+            self.emit_str("push %rax");
+            self.emit_for_node(&bin.right_side);
+            self.emit_str("pop %rcx");
+
+            match &bin.operator[..] {
+                "+" => self.emit_str("addl %ecx, %eax"),
+                _ => unimplemented!("\"{}\" maths operator", bin.operator)
+            }
+        } else {
+            print_ast_node(&ASTNode::BinaryOperation(bin.clone()), 0);
+            panic!("Binary node not implemented in codegen");
+        }
+    }
+
+    fn emit_for_unary_operation (&mut self, unar: &ASTUnaryOperation) {
         self.emit_for_node(&unar.operand);
 
         match &unar.operator[..] {
