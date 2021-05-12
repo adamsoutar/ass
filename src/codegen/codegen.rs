@@ -34,7 +34,7 @@ impl Codegen {
             ASTNode::ReturnStatement(ret) => {
                 // Value will be in EAX
                 self.emit_for_node(&ret);
-                self.emit("ret".to_string())
+                self.emit_str("ret")
             },
             ASTNode::UnaryOperation(unar) => {
                 self.emit_for_unary_operator(unar)
@@ -51,10 +51,15 @@ impl Codegen {
 
         match &unar.operator[..] {
             "-" => {
-                self.emit("neg %eax".to_string())
+                self.emit_str("neg %eax")
             },
             "~" => {
-                self.emit("not %eax".to_string())
+                self.emit_str("not %eax")
+            },
+            "!" => {
+                self.emit_str("cmpl $0, %eax");
+                self.emit_str("movl $0, %eax");
+                self.emit_str("setz %al");
             },
             _ => panic!("Codegen unimplemented for unary operator \"{}\"", unar.operator)
         }
@@ -65,6 +70,10 @@ impl Codegen {
         // For Linux support, just use "main"
         self.emit(".globl _main".to_string());
         self.emit("_main:".to_string())
+    }
+
+    fn emit_str (&mut self, st: &str) {
+        self.emit(st.to_string())
     }
 
     fn emit (&mut self, st: String) {
