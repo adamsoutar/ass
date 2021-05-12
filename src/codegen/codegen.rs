@@ -59,6 +59,7 @@ impl Codegen {
 
             match &bin.operator[..] {
                 "+" => self.emit_str("addl %ecx, %eax"),
+                "*" => self.emit_str("imul %ecx, %eax"),
                 _ => unimplemented!("\"{}\" maths operator", bin.operator)
             }
         } else {
