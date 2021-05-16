@@ -64,6 +64,12 @@ impl Codegen {
                     self.emit_str("movl %ecx, %eax")
                 },
                 "*" => self.emit_str("imul %ecx, %eax"),
+                "/" => {
+                    self.emit_str("movl %eax, %r8d");
+                    self.emit_str("movl %ecx, %eax");
+                    self.emit_str("cdq");
+                    self.emit_str("idivl %r8d");
+                },
                 _ => unimplemented!("\"{}\" maths operator", bin.operator)
             }
         } else {
