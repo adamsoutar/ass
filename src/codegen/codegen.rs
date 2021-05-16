@@ -86,6 +86,10 @@ impl Codegen {
                     self.emit_for_comparison_precursor();
                     self.emit_str("setl %al");
                 },
+                ">=" => {
+                    self.emit_for_comparison_precursor();
+                    self.emit_str("setge %al");
+                }
                 _ => unimplemented!("\"{}\" maths operator", bin.operator)
             }
         } else {
