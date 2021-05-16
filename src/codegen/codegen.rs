@@ -80,6 +80,11 @@ impl Codegen {
                     self.emit_str("movl $0, %eax");
                     self.emit_str("setne %al");
                 },
+                ">" => {
+                    self.emit_str("cmpl %eax, %ecx");
+                    self.emit_str("movl $0, %eax");
+                    self.emit_str("setg %al");
+                },
                 _ => unimplemented!("\"{}\" maths operator", bin.operator)
             }
         } else {

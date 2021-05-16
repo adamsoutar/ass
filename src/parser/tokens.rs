@@ -79,7 +79,8 @@ pub fn is_binary_operator (s: &String) -> bool {
 pub fn is_binary_stack_operator (s: &String) -> bool {
     in_string_vector(s, vec![
         "+", "-", "/", "*",
-        "%", "**", "==", "!="
+        "%", "**", "==", "!=",
+        ">", "<", ">=", "<="
     ])
 }
 pub fn get_operator_precedence (s: &String) -> usize {
@@ -90,6 +91,10 @@ pub fn get_operator_precedence (s: &String) -> usize {
         "%" => 12,
         "+" => 11,
         "-" => 11,
+        ">" => 8,
+        "<" => 8,
+        ">=" => 8,
+        "<=" => 8,
         "==" => 7,
         "!=" => 7,
         _ => 0
