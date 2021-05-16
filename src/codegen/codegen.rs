@@ -6,7 +6,9 @@ use crate::parser::ast_printer::print_ast_node;
 
 pub struct Codegen {
     pub ast: Vec<ASTNode>,
-    pub generated: String
+    pub generated: String,
+    // Used to generate unique assembly jump labels
+    pub label_counter: usize
 }
 
 impl Codegen {
@@ -94,11 +96,39 @@ impl Codegen {
                     self.emit_for_comparison_precursor();
                     self.emit_str("setle %al");
                 },
-                _ => unimplemented!("\"{}\" maths operator", bin.operator)
+                _ => unimplemented!("\"{}\" stack operator", bin.operator)
             }
-        } else {
-            print_ast_node(&ASTNode::BinaryOperation(bin.clone()), 0);
-            panic!("Binary node not implemented in codegen");
+
+            return;
+        }
+
+        match &bin.operator[..] {
+            // Short-circuiting OR implementation
+            "||" => {
+                self.emit_for_node(&bin.left_side);
+
+                let skip_label = self.get_unique_label("skip");
+                let end_label = self.get_unique_label("end");
+
+                self.emit_str("cmpl $0, %eax");
+                // If exp1 was false, we need to jump to evaluating exp2
+                self.emit(format!("je {}", skip_label));
+
+                // Otherwise, we set eax to true and skip to the end
+                self.emit_str("movl $1, %eax");
+                self.emit(format!("jmp {}", end_label));
+
+                self.emit(format!("{}:", skip_label));
+                self.emit_for_node(&bin.right_side);
+
+                // Now we compare eax to 0 and set eax to the opposite of that comparison
+                self.emit_str("cmpl $0, %eax");
+                self.emit_str("movl $0, %eax");
+                self.emit_str("setne %al");
+
+                self.emit(format!("{}:", end_label));
+            },
+            _ => unimplemented!("\"{}\" non-stack operator", bin.operator)
         }
     }
 
@@ -133,6 +163,11 @@ impl Codegen {
         self.emit("_main:".to_string())
     }
 
+    fn get_unique_label (&mut self, comment: &str) -> String {
+        self.label_counter += 1;
+        format!("_{}_{}", comment, self.label_counter)
+    }
+
     fn emit_str (&mut self, st: &str) {
         self.emit(st.to_string())
     }
@@ -144,7 +179,8 @@ impl Codegen {
     pub fn new (ast: Vec<ASTNode>) -> Codegen {
         Codegen {
             ast,
-            generated: String::from("")
+            generated: String::from(""),
+            label_counter: 0
         }
     }
 }

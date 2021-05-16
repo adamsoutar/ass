@@ -97,6 +97,8 @@ pub fn get_operator_precedence (s: &String) -> usize {
         "<=" => 8,
         "==" => 7,
         "!=" => 7,
+        "&&" => 3,
+        "||" => 2,
         _ => 0
     }
 }
