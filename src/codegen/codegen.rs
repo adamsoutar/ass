@@ -71,19 +71,20 @@ impl Codegen {
                     self.emit_str("idivl %r8d");
                 },
                 "==" => {
-                    self.emit_str("cmpl %eax, %ecx");
-                    self.emit_str("movl $0, %eax");
+                    self.emit_for_comparison_precursor();
                     self.emit_str("sete %al");
                 },
                 "!=" => {
-                    self.emit_str("cmpl %eax, %ecx");
-                    self.emit_str("movl $0, %eax");
+                    self.emit_for_comparison_precursor();
                     self.emit_str("setne %al");
                 },
                 ">" => {
-                    self.emit_str("cmpl %eax, %ecx");
-                    self.emit_str("movl $0, %eax");
+                    self.emit_for_comparison_precursor();
                     self.emit_str("setg %al");
+                },
+                "<" => {
+                    self.emit_for_comparison_precursor();
+                    self.emit_str("setl %al");
                 },
                 _ => unimplemented!("\"{}\" maths operator", bin.operator)
             }
@@ -91,6 +92,11 @@ impl Codegen {
             print_ast_node(&ASTNode::BinaryOperation(bin.clone()), 0);
             panic!("Binary node not implemented in codegen");
         }
+    }
+
+    fn emit_for_comparison_precursor (&mut self) {
+        self.emit_str("cmpl %eax, %ecx");
+        self.emit_str("movl $0, %eax");
     }
 
     fn emit_for_unary_operation (&mut self, unar: &ASTUnaryOperation) {
