@@ -50,8 +50,8 @@ impl Codegen {
     }
 
     fn emit_for_binary_operation (&mut self, bin: &ASTBinaryOperation) {
-        if is_binary_maths_operator(&bin.operator) {
-            // Emit maths precursor
+        if is_binary_stack_operator(&bin.operator) {
+            // Emit stack precursor
             self.emit_for_node(&bin.left_side);
             self.emit_str("push %rax");
             self.emit_for_node(&bin.right_side);
@@ -69,6 +69,11 @@ impl Codegen {
                     self.emit_str("movl %ecx, %eax");
                     self.emit_str("cdq");
                     self.emit_str("idivl %r8d");
+                },
+                "==" => {
+                    self.emit_str("cmpl %eax, %ecx");
+                    self.emit_str("movl $0, %eax");
+                    self.emit_str("sete %al");
                 },
                 _ => unimplemented!("\"{}\" maths operator", bin.operator)
             }

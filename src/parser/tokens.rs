@@ -76,10 +76,10 @@ pub fn is_binary_operator (s: &String) -> bool {
 }
 // Just a little shortcut because stack-based maths operators
 // can share very similar setup assembly
-pub fn is_binary_maths_operator (s: &String) -> bool {
+pub fn is_binary_stack_operator (s: &String) -> bool {
     in_string_vector(s, vec![
         "+", "-", "/", "*",
-        "%", "**"
+        "%", "**", "=="
     ])
 }
 pub fn get_operator_precedence (s: &String) -> usize {
@@ -90,6 +90,7 @@ pub fn get_operator_precedence (s: &String) -> usize {
         "%" => 12,
         "+" => 11,
         "-" => 11,
+        "==" => 7,
         _ => 0
     }
 }
