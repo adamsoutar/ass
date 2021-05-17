@@ -150,7 +150,20 @@ impl Parser {
             })
         } else {
             // This is a variable declaration
-            panic!("Variables (\"{}\") are not yet implemented", name)
+            let mut initial_value = None;
+
+            if self.is_next_operator("=") {
+                // It has an initial value
+                self.tokeniser.read();
+                initial_value = Some(Box::new(self.parse_component(0)));
+            }
+
+            self.expect_punctuation(';');
+
+            ASTNode::VariableDeclaration(ASTVariableDeclaration {
+                identifier: name,
+                initial_value
+            })
         }
     }
 

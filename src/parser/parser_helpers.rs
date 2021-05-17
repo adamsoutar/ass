@@ -19,6 +19,13 @@ impl Parser {
         }
     }
 
+    pub fn is_next_operator(&self, s: &str) -> bool {
+        match self.tokeniser.peek() {
+            Token::Operator(op) => &op[..] == s,
+            _ => false
+        }
+    }
+
     pub fn is_next_keyword(&self, s: &str) -> bool {
         match self.tokeniser.peek() {
             Token::Keyword(st) => &st[..] == s,

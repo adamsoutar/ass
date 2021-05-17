@@ -6,15 +6,14 @@ pub enum ASTNode {
     BlockStatement(Vec<ASTNode>),
     FunctionDefinition(ASTFunctionDefinition),
     UnaryOperation(ASTUnaryOperation),
-    BinaryOperation(ASTBinaryOperation)
+    BinaryOperation(ASTBinaryOperation),
+    VariableDeclaration(ASTVariableDeclaration)
 }
 
 #[derive(Clone, PartialEq)]
 pub struct ASTFunctionDefinition {
     pub name: String,
-    pub body: Vec<ASTNode>,
-    // Unused for now, everything is an int
-    // pub returnType: Box<ASTNode>
+    pub body: Vec<ASTNode>
 }
 
 #[derive(Clone, PartialEq)]
@@ -28,4 +27,10 @@ pub struct ASTBinaryOperation {
     pub left_side: Box<ASTNode>,
     pub operator: String,
     pub right_side: Box<ASTNode>
+}
+
+#[derive(Clone, PartialEq)]
+pub struct ASTVariableDeclaration {
+    pub identifier: String,
+    pub initial_value: Option<Box<ASTNode>>
 }

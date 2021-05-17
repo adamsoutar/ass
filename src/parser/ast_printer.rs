@@ -42,5 +42,11 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
             print_ast_node(&bin.left_side, depth + 1);
             print_ast_node(&bin.right_side, depth + 1)
         }
+        ASTNode::VariableDeclaration(var) => {
+            print_at_depth(format!("Variable declaration: {}", var.identifier), depth);
+            if let Some(val) = &var.initial_value {
+                print_ast_node(val, depth + 1);
+            }
+        }
     }
 }
