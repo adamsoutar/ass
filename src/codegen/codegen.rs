@@ -22,7 +22,9 @@ impl Codegen {
         };
 
         self.emit_program_prologue();
-        self.emit_for_block(&main_func.body)
+        // self.emit_function_prologue();
+        self.emit_for_block(&main_func.body);
+        // self.emit_function_epilogue();
     }
 
     fn emit_for_block (&mut self, block: &Vec<ASTNode>) {
@@ -44,11 +46,18 @@ impl Codegen {
             ASTNode::BinaryOperation(bin) => {
                 self.emit_for_binary_operation(bin)
             },
+            ASTNode::VariableDeclaration(var) => {
+                self.emit_for_variable_declaration(var)
+            },
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")
             }
         }
+    }
+
+    fn emit_for_variable_declaration (&mut self, var: &ASTVariableDeclaration) {
+
     }
 
     fn emit_for_binary_operation (&mut self, bin: &ASTBinaryOperation) {
@@ -181,6 +190,22 @@ impl Codegen {
         // For Linux support, just use "main"
         self.emit(".globl _main".to_string());
         self.emit("_main:".to_string())
+    }
+
+    fn emit_function_prologue (&mut self) {
+        // Save the old base pointer
+        self.emit_str("push %rbp");
+        // The stack head is the new base
+        self.emit_str("movq %rsp, %rbp");
+    }
+
+    fn emit_function_epilogue (&mut self) {
+        // Stack head is the base
+        self.emit_str("movq %rbp, %rsp");
+        // Restore the old base
+        self.emit_str("pop %rbp");
+        // Jump out of func
+        self.emit_str("ret");
     }
 
     fn get_unique_label (&mut self, comment: &str) -> String {
