@@ -128,6 +128,26 @@ impl Codegen {
 
                 self.emit(format!("{}:", end_label));
             },
+            // Short circuiting AND implementation, very similar to OR
+            "&&" => {
+                self.emit_for_node(&bin.left_side);
+
+                let skip_label = self.get_unique_label("skip");
+                let end_label = self.get_unique_label("end");
+
+                self.emit_str("cmpl $0, %eax");
+                self.emit(format!("jne {}", skip_label));
+                self.emit(format!("jmp {}", end_label));
+
+                self.emit(format!("{}:", skip_label));
+                self.emit_for_node(&bin.right_side);
+
+                self.emit_str("cmpl $0, %eax");
+                self.emit_str("movl $0, %eax");
+                self.emit_str("setne %al");
+
+                self.emit(format!("{}:", end_label))
+            },
             _ => unimplemented!("\"{}\" non-stack operator", bin.operator)
         }
     }
