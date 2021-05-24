@@ -11,8 +11,8 @@ pub struct Codegen {
     // Used to generate unique assembly jump labels
     pub label_counter: usize,
     // A stack of hashmaps of local var names to stack offsets
-    pub var_context: Vec<HashMap<String, isize>>,
-    pub stack_offset: isize
+    pub var_context: Vec<HashMap<String, usize>>,
+    pub stack_offset: usize
 }
 
 impl Codegen {
@@ -58,7 +58,7 @@ impl Codegen {
             },
             ASTNode::Identifier(ident) => {
                 let offset = self.find_var(ident);
-                self.emit(format!("movq {}(%rbp), %rax", offset))
+                self.emit(format!("movq -{}(%rbp), %rax", offset))
             }
             _ => {
                 print_ast_node(node, 0);
