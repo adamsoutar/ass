@@ -1,3 +1,4 @@
+use std::collections::hash_map::HashMap;
 use crate::parser::ast_utils::*;
 use crate::parser::tokens::*;
 use crate::parser::ast_printer::print_ast_node;
@@ -8,7 +9,10 @@ pub struct Codegen {
     pub ast: Vec<ASTNode>,
     pub generated: String,
     // Used to generate unique assembly jump labels
-    pub label_counter: usize
+    pub label_counter: usize,
+    // A stack of hashmaps of local var names to stack offsets
+    pub var_context: Vec<HashMap<String, isize>>,
+    pub stack_offset: isize
 }
 
 impl Codegen {
@@ -23,7 +27,10 @@ impl Codegen {
 
         self.emit_program_prologue();
         self.emit_function_prologue();
+        self.begin_var_scope();
         self.emit_for_block(&main_func.body);
+        // TODO: Worry about returning early
+        self.end_var_scope();
         self.emit_function_epilogue();
     }
 
@@ -49,6 +56,10 @@ impl Codegen {
             ASTNode::VariableDeclaration(var) => {
                 self.emit_for_variable_declaration(var)
             },
+            ASTNode::Identifier(ident) => {
+                let offset = self.find_var(ident);
+                self.emit(format!("movq {}(%rbp), %rax", offset))
+            }
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")
@@ -57,7 +68,13 @@ impl Codegen {
     }
 
     fn emit_for_variable_declaration (&mut self, var: &ASTVariableDeclaration) {
+        // If there's an initial value, we'll put it in eax, if not we'll
+        // shove whatever random vallue we were last using in there (it's UB)
+        if let Some(init) = &var.initial_value {
+            self.emit_for_node(init);
+        }
 
+        self.emit_var_alloc_from_eax(&var.identifier);
     }
 
     fn emit_for_binary_operation (&mut self, bin: &ASTBinaryOperation) {
@@ -213,7 +230,7 @@ impl Codegen {
         format!("_{}_{}", comment, self.label_counter)
     }
 
-    fn emit_str (&mut self, st: &str) {
+    pub fn emit_str (&mut self, st: &str) {
         self.emit(st.to_string())
     }
 
@@ -225,7 +242,9 @@ impl Codegen {
         Codegen {
             ast,
             generated: String::from(""),
-            label_counter: 0
+            label_counter: 0,
+            var_context: vec![],
+            stack_offset: 0
         }
     }
 }

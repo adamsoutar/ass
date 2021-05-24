@@ -82,6 +82,7 @@ impl Parser {
 
         match t {
             Token::Integer(int) => return ASTNode::IntegerLiteral(int),
+            Token::Identifier(ident) => return ASTNode::Identifier(ident),
             Token::Operator(oper) => return self.parse_unary_operation(oper),
             _ => {}
         }
