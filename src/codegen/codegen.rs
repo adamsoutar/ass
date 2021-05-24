@@ -22,9 +22,9 @@ impl Codegen {
         };
 
         self.emit_program_prologue();
-        // self.emit_function_prologue();
+        self.emit_function_prologue();
         self.emit_for_block(&main_func.body);
-        // self.emit_function_epilogue();
+        self.emit_function_epilogue();
     }
 
     fn emit_for_block (&mut self, block: &Vec<ASTNode>) {
@@ -38,7 +38,7 @@ impl Codegen {
             },
             ASTNode::ReturnStatement(ret) => {
                 self.emit_for_node(&ret);
-                self.emit_str("ret")
+                self.emit_function_epilogue();
             },
             ASTNode::UnaryOperation(unar) => {
                 self.emit_for_unary_operation(unar)
