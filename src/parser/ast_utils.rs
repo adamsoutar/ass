@@ -7,7 +7,7 @@ pub enum ASTNode {
     FunctionDefinition(ASTFunctionDefinition),
     UnaryOperation(ASTUnaryOperation),
     BinaryOperation(ASTBinaryOperation),
-    VariableDeclaration(ASTVariableDeclaration)
+    VariableDeclaration(ASTVariableDeclaration),
 }
 
 #[derive(Clone, PartialEq)]
