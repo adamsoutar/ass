@@ -19,16 +19,9 @@ impl Codegen {
     pub fn generate (&mut self) {
         self.generated = String::from("");
 
-        let first_node = self.ast[0].clone();
-        let main_func = match first_node {
-            ASTNode::FunctionDefinition(func) => func,
-            _ => panic!("Only a main() declaration is supported")
-        };
-
-        self.emit_program_prologue();
-        self.emit_function_prologue();
-        self.emit_for_block(&main_func.body.unwrap());
-        self.emit_function_epilogue(true);
+        for node in self.ast.clone() {
+            self.emit_for_node(&node)
+        }
     }
 
     fn emit_for_block (&mut self, block: &Vec<ASTNode>) {
@@ -66,10 +59,26 @@ impl Codegen {
             ASTNode::IfStatement(if_stmt) => {
                 self.emit_for_if_statement(if_stmt)
             },
+            ASTNode::FunctionDefinition(func) => {
+                self.emit_for_function_definition(func)
+            },
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")
             }
+        }
+    }
+
+    fn emit_for_function_definition (&mut self, func: &ASTFunctionDefinition) {
+        self.emit(format!(".globl _{}", func.name));
+
+        if let Some(body) = &func.body {
+            self.emit(format!("_{}:", func.name));
+            self.emit_function_prologue();
+
+            self.emit_for_block(body);
+
+            self.emit_function_epilogue(true);
         }
     }
 
@@ -239,13 +248,6 @@ impl Codegen {
             },
             _ => panic!("Codegen unimplemented for unary operator \"{}\"", unar.operator)
         }
-    }
-
-    fn emit_program_prologue (&mut self) {
-        // NOTE: "_main" is a macOS thing.
-        // For Linux support, just use "main"
-        self.emit(".globl _main".to_string());
-        self.emit("_main:".to_string())
     }
 
     fn emit_function_prologue (&mut self) {

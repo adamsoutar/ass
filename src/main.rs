@@ -23,12 +23,12 @@ fn main() {
 
     let ast = parser.generate_ast();
 
-    for node in &ast {
-        print_ast_node(node, 0);
-    }
+    // for node in &ast {
+    //     print_ast_node(node, 0);
+    // }
 
-    // let mut codegen = Codegen::new(ast);
-    // codegen.generate();
-    //
-    // print!("{}", codegen.generated)
+    let mut codegen = Codegen::new(ast);
+    codegen.generate();
+
+    print!("{}", codegen.generated)
 }
