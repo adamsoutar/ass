@@ -78,9 +78,17 @@ impl Codegen {
         self.emit_str("cmpl $0, %eax");
 
         let skip_label = self.get_unique_label("if_skip");
-        self.emit(format!("je {}", skip_label));
+        let else_label = self.get_unique_label("else");
+        self.emit(format!("je {}", else_label));
 
         self.emit_for_node(&if_stmt.body);
+        self.emit(format!("jmp {}", skip_label));
+
+        self.emit(format!("{}:", else_label));
+
+        if let Some(else_node) = &if_stmt.else_stmt {
+            self.emit_for_node(else_node);
+        }
 
         self.emit(format!("{}:", skip_label));
     }

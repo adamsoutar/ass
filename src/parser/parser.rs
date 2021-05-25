@@ -155,10 +155,18 @@ impl Parser {
 
         let body = Box::new(self.parse_component(0));
 
+        let mut else_stmt = None;
+        if self.is_next_keyword("else") {
+            self.tokeniser.read();
+            else_stmt = Some(
+                Box::new(self.parse_component(0))
+            );
+        }
+
         ASTNode::IfStatement(ASTIfStatement {
             condition,
             body,
-            else_stmt: None
+            else_stmt
         })
     }
 
