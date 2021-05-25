@@ -139,12 +139,27 @@ impl Parser {
             match kwdstr {
                 "int" => return self.parse_declaration(t),
                 "return" => return self.parse_return_statement(),
+                "if" => return self.parse_if_statement(),
                 _ => panic!("Unexpected keyword \"{}\"", kwd)
             }
         }
 
         print_token(&t);
         panic!("Parser encountered an unexpected token")
+    }
+
+    fn parse_if_statement (&mut self) -> ASTNode {
+        self.expect_punctuation('(');
+        let condition = Box::new(self.parse_component(0));
+        self.expect_punctuation(')');
+
+        let body = Box::new(self.parse_component(0));
+
+        ASTNode::IfStatement(ASTIfStatement {
+            condition,
+            body,
+            else_stmt: None
+        })
     }
 
     fn parse_return_statement (&mut self) -> ASTNode {

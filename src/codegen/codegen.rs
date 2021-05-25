@@ -63,11 +63,26 @@ impl Codegen {
             ASTNode::BlockStatement(stmts) => {
                 self.emit_for_block(stmts)
             },
+            ASTNode::IfStatement(if_stmt) => {
+                self.emit_for_if_statement(if_stmt)
+            },
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")
             }
         }
+    }
+
+    fn emit_for_if_statement (&mut self, if_stmt: &ASTIfStatement) {
+        self.emit_for_node(&if_stmt.condition);
+        self.emit_str("cmpl $0, %eax");
+
+        let skip_label = self.get_unique_label("if_skip");
+        self.emit(format!("je {}", skip_label));
+
+        self.emit_for_node(&if_stmt.body);
+
+        self.emit(format!("{}:", skip_label));
     }
 
     fn emit_for_variable_declaration (&mut self, var: &ASTVariableDeclaration) {

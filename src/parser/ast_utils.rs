@@ -8,6 +8,7 @@ pub enum ASTNode {
     UnaryOperation(ASTUnaryOperation),
     BinaryOperation(ASTBinaryOperation),
     VariableDeclaration(ASTVariableDeclaration),
+    IfStatement(ASTIfStatement)
 }
 
 #[derive(Clone, PartialEq)]
@@ -33,4 +34,11 @@ pub struct ASTBinaryOperation {
 pub struct ASTVariableDeclaration {
     pub identifier: String,
     pub initial_value: Option<Box<ASTNode>>
+}
+
+#[derive(Clone, PartialEq)]
+pub struct ASTIfStatement {
+    pub condition: Box<ASTNode>,
+    pub body: Box<ASTNode>,
+    pub else_stmt: Option<Box<ASTNode>>
 }

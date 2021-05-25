@@ -48,5 +48,16 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
                 print_ast_node(val, depth + 1);
             }
         }
+        ASTNode::IfStatement(if_stmt) => {
+            print_at_depth("If statement:".to_string(), depth);
+            print_at_depth("Condition:".to_string(), depth + 1);
+            print_ast_node(&if_stmt.condition, depth + 2);
+            print_at_depth("Body:".to_string(), depth + 1);
+            print_ast_node(&if_stmt.body, depth + 2);
+            if let Some(else_stmt) = &if_stmt.else_stmt {
+                print_at_depth("Else:".to_string(), depth + 1);
+                print_ast_node(else_stmt, depth + 2);
+            }
+        }
     }
 }
