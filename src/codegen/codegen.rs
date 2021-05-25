@@ -278,7 +278,7 @@ impl Codegen {
         self.emit(st.to_string())
     }
 
-    fn emit (&mut self, st: String) {
+    pub fn emit (&mut self, st: String) {
         self.generated = format!("{}{}\n", self.generated, st)
     }
 

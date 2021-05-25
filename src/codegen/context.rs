@@ -17,7 +17,13 @@ impl Codegen {
         self.var_context.push(HashMap::new());
     }
     pub fn end_var_scope (&mut self) {
-        self.var_context.pop();
+        let popped_scope = self.var_context.pop().unwrap();
+        // Each stack item is 64 bits (8 bytes)
+        // We need to dealloc this scope by moving up
+        // the stack pointer so future vars are alloced higher
+        let dealloc_bytes = popped_scope.len() * 8;
+        self.emit(format!("addq ${}, %rsp", dealloc_bytes));
+        self.stack_offset -= dealloc_bytes;
     }
 
     pub fn emit_var_alloc_from_eax (&mut self, name: &String) {
