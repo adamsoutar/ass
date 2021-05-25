@@ -1,6 +1,5 @@
 #[derive(Clone)]
 pub enum Token {
-    String(String),
     Identifier(String),
     Keyword(String),
     Integer(isize),

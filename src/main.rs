@@ -7,8 +7,9 @@ mod codegen;
 use parser::char_stream::CharStream;
 use parser::tokeniser::Tokeniser;
 use parser::parser::Parser;
-use parser::ast_printer::print_ast_node;
 use codegen::codegen::Codegen;
+
+// use parser::ast_printer::print_ast_node;
 
 fn main() {
     let filename = env::args().nth(1)

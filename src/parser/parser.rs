@@ -1,4 +1,3 @@
-use crate::parser::parser_helpers::*;
 use crate::parser::ast_utils::*;
 use crate::parser::tokeniser::Tokeniser;
 use crate::parser::tokens::*;
@@ -35,7 +34,7 @@ impl Parser {
     }
 
     fn parse_component (&mut self, precedence: usize) -> ASTNode {
-        let mut node = self.parse_atom();
+        let node = self.parse_atom();
 
         // TODO: Check for calls, array access, etc.
 

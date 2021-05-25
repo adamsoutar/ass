@@ -25,11 +25,4 @@ impl Parser {
             _ => false
         }
     }
-
-    pub fn is_next_keyword(&self, s: &str) -> bool {
-        match self.tokeniser.peek() {
-            Token::Keyword(st) => &st[..] == s,
-            _ => false
-        }
-    }
 }
