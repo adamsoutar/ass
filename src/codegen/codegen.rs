@@ -31,7 +31,7 @@ impl Codegen {
         self.emit_for_block(&main_func.body);
         // TODO: Worry about returning early
         self.end_var_scope();
-        self.emit_function_epilogue();
+        self.emit_function_epilogue(true);
     }
 
     fn emit_for_block (&mut self, block: &Vec<ASTNode>) {
@@ -45,7 +45,7 @@ impl Codegen {
             },
             ASTNode::ReturnStatement(ret) => {
                 self.emit_for_node(&ret);
-                self.emit_function_epilogue();
+                self.emit_function_epilogue(false);
             },
             ASTNode::UnaryOperation(unar) => {
                 self.emit_for_unary_operation(unar)
@@ -229,7 +229,12 @@ impl Codegen {
         self.emit_str("movq %rsp, %rbp");
     }
 
-    fn emit_function_epilogue (&mut self) {
+    fn emit_function_epilogue (&mut self, gen_return_value: bool) {
+        if gen_return_value {
+            // Functions without a return statement return 0
+            self.emit_str("movq $0, %rax");
+        }
+
         // Stack head is the base
         self.emit_str("movq %rbp, %rsp");
         // Restore the old base
