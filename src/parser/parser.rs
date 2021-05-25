@@ -39,7 +39,17 @@ impl Parser {
 
         // TODO: Check for calls, array access, etc.
 
-        self.maybe_binary_operation(node, precedence)
+        let bin = self.maybe_binary_operation(node, precedence);
+        self.allow_expression_statement();
+        bin
+    }
+
+    // It might be something we didn't expect to be a statement.
+    // eg. 3 + 3; or a = 1;
+    fn allow_expression_statement (&mut self) {
+        if self.is_next_punctuation(';') {
+            self.tokeniser.read();
+        }
     }
 
     fn maybe_binary_operation (&mut self, me: ASTNode, my_precedence: usize) -> ASTNode {
@@ -62,6 +72,21 @@ impl Parser {
 
                     return self.maybe_binary_operation(node, my_precedence)
                 }
+            }
+
+            // Assignment operators have right-to-left associativity
+            if is_assignment_operator(&op) {
+                self.tokeniser.read();
+
+                let them = self.parse_component(0);
+
+                let node = ASTNode::BinaryOperation(ASTBinaryOperation {
+                    left_side: Box::new(me),
+                    operator: op,
+                    right_side: Box::new(them)
+                });
+
+                return node;
             }
         }
 
@@ -119,7 +144,7 @@ impl Parser {
 
     fn parse_return_statement (&mut self) -> ASTNode {
         let ret_val = self.parse_component(0);
-        self.expect_punctuation(';');
+        // self.expect_punctuation(';');
         ASTNode::ReturnStatement(Box::new(ret_val))
     }
 
@@ -159,7 +184,7 @@ impl Parser {
                 initial_value = Some(Box::new(self.parse_component(0)));
             }
 
-            self.expect_punctuation(';');
+            // self.expect_punctuation(';');
 
             ASTNode::VariableDeclaration(ASTVariableDeclaration {
                 identifier: name,

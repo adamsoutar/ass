@@ -46,11 +46,12 @@ pub fn is_keyword(s: &String) -> bool {
 
 pub fn is_operator(s: &String) -> bool {
     in_string_vector(s, vec![
-        "=", "==", "+", "-", "*", "/",
+        "==", "+", "-", "*", "/",
         "!=", "**", "%", "&&", "||",
-        ">", "<", ">=", "<=", "+=", "*=",
-        "-=", "/=", "%=", "**=",  "!",
-        "~", "&", "--", "++"
+        ">", "<", ">=", "<=",  "!",
+        "~", "&", "--", "++", "%=",
+        "*=", "+=", "-=", "/=",
+        "**=", "="
     ])
 }
 pub fn is_assignment_operator (s: &String) -> bool {
@@ -59,7 +60,7 @@ pub fn is_assignment_operator (s: &String) -> bool {
     //       valid binary operator.
     in_string_vector(s, vec![
         "*=", "+=", "-=", "/=", "%=",
-        "**="
+        "**=", "="
     ])
 }
 pub fn is_unary_operator (s: &String) -> bool {
@@ -86,7 +87,6 @@ pub fn is_binary_stack_operator (s: &String) -> bool {
 pub fn get_operator_precedence (s: &String) -> usize {
     let sstr = &s[..];
     match sstr {
-        "=" => 100, // TODO: Proper right-to-left associativity
         "*" => 12,
         "/" => 12,
         "%" => 12,
@@ -100,6 +100,7 @@ pub fn get_operator_precedence (s: &String) -> usize {
         "!=" => 7,
         "&&" => 3,
         "||" => 2,
+        "=" => 0,
         _ => unimplemented!("\"{}\" operator precedence unspecified", s)
     }
 }

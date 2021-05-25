@@ -174,7 +174,20 @@ impl Codegen {
 
                 self.emit(format!("{}:", end_label))
             },
+            // Assignemnts (remember these are expressions with a value!)
+            "=" => {
+                let ass_offset = self.find_assignable(&bin.left_side);
+                self.emit_for_node(&bin.right_side);
+                self.emit(format!("movq %rax, -{}(%rbp)", ass_offset));
+            },
             _ => unimplemented!("\"{}\" non-stack operator", bin.operator)
+        }
+    }
+
+    fn find_assignable (&self, node: &ASTNode) -> usize {
+        match &node {
+            ASTNode::Identifier(ident) => self.find_var(ident),
+            _ => panic!("Cannot resolve non-identifier assignable")
         }
     }
 
