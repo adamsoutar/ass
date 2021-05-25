@@ -27,15 +27,15 @@ impl Codegen {
 
         self.emit_program_prologue();
         self.emit_function_prologue();
-        self.begin_var_scope();
         self.emit_for_block(&main_func.body);
-        // TODO: Worry about returning early
-        self.end_var_scope();
         self.emit_function_epilogue(true);
     }
 
     fn emit_for_block (&mut self, block: &Vec<ASTNode>) {
+        self.begin_var_scope();
         for node in block { self.emit_for_node(node) }
+        // TODO: Worry about returning early
+        self.end_var_scope();
     }
 
     fn emit_for_node (&mut self, node: &ASTNode) {
@@ -60,6 +60,9 @@ impl Codegen {
                 let offset = self.find_var(ident);
                 self.emit(format!("movq -{}(%rbp), %rax", offset))
             }
+            ASTNode::BlockStatement(stmts) => {
+                self.emit_for_block(stmts)
+            },
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")

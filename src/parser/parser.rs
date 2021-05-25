@@ -102,6 +102,12 @@ impl Parser {
                 self.expect_punctuation(')');
                 return contents
             }
+
+            // Compound statements
+            if pnc == '{' {
+                let contents = self.parse_block_statement(false, true);
+                return contents
+            }
         }
 
         match t {
