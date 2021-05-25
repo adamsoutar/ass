@@ -29,8 +29,19 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
         },
         ASTNode::FunctionDefinition(func) => {
             print_at_depth(format!("Function: {}", func.name), depth);
-            for stmt in &func.body {
-                print_ast_node(stmt, depth + 1)
+
+            if func.params.len() > 0 {
+                print_at_depth("Parameters:".to_string(), depth + 1);
+                for param in &func.params {
+                    print_at_depth(format!("- \"{}\"", param), depth + 2);
+                }
+            }
+
+            if let Some(body) = &func.body {
+                print_at_depth("Body:".to_string(), depth + 1);
+                for stmt in body {
+                    print_ast_node(stmt, depth + 2)
+                }
             }
         }
         ASTNode::UnaryOperation(unar) => {

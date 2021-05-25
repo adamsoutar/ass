@@ -190,17 +190,40 @@ impl Parser {
         if self.is_next_punctuation('(') {
             // This is a function declaration with a parameter list
             self.tokeniser.read();
+
+            // Parse parameters
+            let mut params = vec![];
+            while self.is_next_keyword("int") {
+                self.tokeniser.read();
+                // For now, we only support named parameters
+                let param_name = match self.tokeniser.read() {
+                    Token::Identifier(ident) => ident,
+                    _ => panic!("Function parameters must be identifiers")
+                };
+                params.push(param_name);
+
+                // NOTE: This doesn't quite match the standard
+                if self.is_next_punctuation(',') {
+                    self.tokeniser.read();
+                }
+            }
+
             // For now, we only support 0-arg functions
             self.expect_punctuation(')');
-            let body_node = self.parse_block_statement(true, true);
-            let body = match body_node {
-                ASTNode::BlockStatement(stmts) => stmts,
-                _ => unreachable!()
-            };
+
+            let mut body = None;
+            if self.is_next_punctuation('{') {
+                let body_node = self.parse_block_statement(true, true);
+                body = match body_node {
+                    ASTNode::BlockStatement(stmts) => Some(stmts),
+                    _ => unreachable!()
+                };
+            }
 
             return ASTNode::FunctionDefinition(ASTFunctionDefinition {
                 name,
-                body
+                body,
+                params
             })
         } else {
             // This is a variable declaration

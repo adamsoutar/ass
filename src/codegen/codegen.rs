@@ -27,7 +27,7 @@ impl Codegen {
 
         self.emit_program_prologue();
         self.emit_function_prologue();
-        self.emit_for_block(&main_func.body);
+        self.emit_for_block(&main_func.body.unwrap());
         self.emit_function_epilogue(true);
     }
 

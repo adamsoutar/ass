@@ -9,7 +9,7 @@ use parser::tokeniser::Tokeniser;
 use parser::parser::Parser;
 use codegen::codegen::Codegen;
 
-// use parser::ast_printer::print_ast_node;
+use parser::ast_printer::print_ast_node;
 
 fn main() {
     let filename = env::args().nth(1)
@@ -23,12 +23,12 @@ fn main() {
 
     let ast = parser.generate_ast();
 
-    // for node in &ast {
-    //     print_ast_node(node, 0);
-    // }
+    for node in &ast {
+        print_ast_node(node, 0);
+    }
 
-    let mut codegen = Codegen::new(ast);
-    codegen.generate();
-
-    print!("{}", codegen.generated)
+    // let mut codegen = Codegen::new(ast);
+    // codegen.generate();
+    //
+    // print!("{}", codegen.generated)
 }

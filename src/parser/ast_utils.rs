@@ -14,7 +14,9 @@ pub enum ASTNode {
 #[derive(Clone, PartialEq)]
 pub struct ASTFunctionDefinition {
     pub name: String,
-    pub body: Vec<ASTNode>
+    // If this option is None, it's a function declaration without an implementation
+    pub body: Option<Vec<ASTNode>>,
+    pub params: Vec<String>
 }
 
 #[derive(Clone, PartialEq)]
