@@ -25,6 +25,12 @@ impl Codegen {
         self.stack_offset += 8;
 
         let latest = self.var_context.len() - 1;
-        self.var_context[latest].insert(name.clone(), self.stack_offset);
+        let map = &mut self.var_context[latest];
+
+        if map.contains_key(name) {
+            panic!("Redefinition of \"{}\" in the same scope", name);
+        }
+
+        map.insert(name.clone(), self.stack_offset);
     }
 }
