@@ -208,7 +208,6 @@ impl Parser {
                 }
             }
 
-            // For now, we only support 0-arg functions
             self.expect_punctuation(')');
 
             let mut body = None;

@@ -11,8 +11,8 @@ pub struct Codegen {
     // Used to generate unique assembly jump labels
     pub label_counter: usize,
     // A stack of hashmaps of local var names to stack offsets
-    pub var_context: Vec<HashMap<String, usize>>,
-    pub stack_offset: usize
+    pub var_context: Vec<HashMap<String, isize>>,
+    pub stack_offset: isize
 }
 
 impl Codegen {
@@ -27,7 +27,6 @@ impl Codegen {
     fn emit_for_block (&mut self, block: &Vec<ASTNode>) {
         self.begin_var_scope();
         for node in block { self.emit_for_node(node) }
-        // TODO: Worry about returning early
         self.end_var_scope();
     }
 
@@ -51,7 +50,7 @@ impl Codegen {
             },
             ASTNode::Identifier(ident) => {
                 let offset = self.find_var(ident);
-                self.emit(format!("movq -{}(%rbp), %rax", offset))
+                self.emit(format!("movq {}(%rbp), %rax", offset))
             }
             ASTNode::BlockStatement(stmts) => {
                 self.emit_for_block(stmts)
@@ -213,13 +212,13 @@ impl Codegen {
             "=" => {
                 let ass_offset = self.find_assignable(&bin.left_side);
                 self.emit_for_node(&bin.right_side);
-                self.emit(format!("movq %rax, -{}(%rbp)", ass_offset));
+                self.emit(format!("movq %rax, {}(%rbp)", ass_offset));
             },
             _ => unimplemented!("\"{}\" non-stack operator", bin.operator)
         }
     }
 
-    fn find_assignable (&self, node: &ASTNode) -> usize {
+    fn find_assignable (&self, node: &ASTNode) -> isize {
         match &node {
             ASTNode::Identifier(ident) => self.find_var(ident),
             _ => panic!("Cannot resolve non-identifier assignable")
