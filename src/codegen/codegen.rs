@@ -12,7 +12,8 @@ pub struct Codegen {
     pub label_counter: usize,
     // A stack of hashmaps of local var names to stack offsets
     pub var_context: Vec<HashMap<String, isize>>,
-    pub stack_offset: isize
+    pub stack_offset: isize,
+    pub block_depth: usize
 }
 
 impl Codegen {
@@ -27,7 +28,8 @@ impl Codegen {
     fn emit_for_block (&mut self, block: &Vec<ASTNode>) {
         self.begin_var_scope();
         for node in block { self.emit_for_node(node) }
-        self.end_var_scope();
+        self.end_runtime_var_scope();
+        self.end_compiletime_var_scope();
     }
 
     fn emit_for_node (&mut self, node: &ASTNode) {
@@ -37,6 +39,7 @@ impl Codegen {
             },
             ASTNode::ReturnStatement(ret) => {
                 self.emit_for_node(&ret);
+                self.end_runtime_var_scope();
                 self.emit_function_epilogue(false);
             },
             ASTNode::UnaryOperation(unar) => {
@@ -69,9 +72,12 @@ impl Codegen {
     }
 
     fn emit_for_function_definition (&mut self, func: &ASTFunctionDefinition) {
-        self.emit(format!(".globl _{}", func.name));
-
+        // For now, we don't care about function definitions without a body.
+        // They would be important if we didn't know a func's return type, but this compiler
+        // doesn't deal with types atm
         if let Some(body) = &func.body {
+            self.emit(format!(".globl _{}", func.name));
+
             self.emit(format!("_{}:", func.name));
             self.emit_function_prologue();
 
@@ -289,7 +295,8 @@ impl Codegen {
             generated: String::from(""),
             label_counter: 0,
             var_context: vec![],
-            stack_offset: 0
+            stack_offset: 0,
+            block_depth: 0
         }
     }
 }
