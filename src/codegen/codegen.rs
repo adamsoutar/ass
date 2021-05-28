@@ -61,11 +61,27 @@ impl Codegen {
             ASTNode::FunctionDefinition(func) => {
                 self.emit_for_function_definition(func)
             },
+            ASTNode::FunctionCall(func_call) => {
+                self.emit_for_function_call(func_call)
+            },
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")
             }
         }
+    }
+
+    fn emit_for_function_call (&mut self, func_call: &ASTFunctionCall) {
+        // TODO: On macOS, the stack needs to be 16-bit aligned before calling
+        //       a function.
+
+        // Args are pushed on to the stack in reverse order
+        for arg in func_call.args.iter().rev() {
+            self.emit_for_node(arg);
+            self.emit_str("push %rax");
+        }
+
+        self.emit(format!("call _{}", func_call.name));
     }
 
     fn emit_for_function_definition (&mut self, func: &ASTFunctionDefinition) {
