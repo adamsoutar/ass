@@ -69,6 +69,12 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
                 print_at_depth("Else:".to_string(), depth + 1);
                 print_ast_node(else_stmt, depth + 2);
             }
+        },
+        ASTNode::FunctionCall(func_call) => {
+            print_at_depth(format!("Function call: {}", func_call.name), depth);
+            for arg in &func_call.args {
+                print_ast_node(arg, depth + 1);
+            }
         }
     }
 }

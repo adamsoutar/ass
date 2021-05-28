@@ -34,9 +34,14 @@ impl Parser {
     }
 
     fn parse_component (&mut self, precedence: usize) -> ASTNode {
-        let node = self.parse_atom();
+        let mut node = self.parse_atom();
 
-        // TODO: Check for calls, array access, etc.
+        while !self.tokeniser.eof {
+            let (was_call, call_node) = self.maybe_call(node);
+            node = call_node;
+
+            if !was_call { break; }
+        }
 
         let bin = self.maybe_binary_operation(node, precedence);
         self.allow_expression_statement();
@@ -49,6 +54,38 @@ impl Parser {
         if self.is_next_punctuation(';') {
             self.tokeniser.read();
         }
+    }
+
+    fn maybe_call (&mut self, me: ASTNode) -> (bool, ASTNode) {
+        if !self.is_next_punctuation('(') {
+            return (false, me);
+        }
+        self.tokeniser.read();
+
+        let func_name = match me {
+            ASTNode::Identifier(ident) => ident,
+            _ => panic!("Function call must be an identifier (eg. not 3.14() )")
+        };
+
+        let mut args = vec![];
+        while !self.tokeniser.eof {
+            if self.is_next_punctuation(')') {
+                self.tokeniser.read();
+                break;
+            }
+
+            args.push(self.parse_component(0));
+
+            // TODO: This doesn't quite follow the standard
+            if self.is_next_punctuation(',') {
+                self.tokeniser.read();
+            }
+        }
+
+        (true, ASTNode::FunctionCall(ASTFunctionCall {
+            name: func_name,
+            args
+        }))
     }
 
     fn maybe_binary_operation (&mut self, me: ASTNode, my_precedence: usize) -> ASTNode {
