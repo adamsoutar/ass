@@ -26,6 +26,16 @@ impl Codegen {
         self.stack_offset += dealloc_bytes as isize;
     }
 
+    pub fn var_alloc_from_arbitrary_offset (&mut self, name: &String, offset: isize) {
+        let latest = self.var_context.len() - 1;
+        let map = &mut self.var_context[latest];
+
+        map.insert(name.clone(), offset);
+    }
+    pub fn end_var_scope_without_dealloc (&mut self) {
+        self.var_context.pop();
+    }
+
     pub fn emit_var_alloc_from_eax (&mut self, name: &String) {
         self.emit_str("push %rax");
         self.stack_offset -= 8;

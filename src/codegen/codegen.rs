@@ -75,7 +75,18 @@ impl Codegen {
             self.emit(format!("_{}:", func.name));
             self.emit_function_prologue();
 
+            // Alloc arguments
+            self.var_context.push(HashMap::new());
+            let mut offset: isize = 16;
+            for arg in &func.params {
+                self.var_alloc_from_arbitrary_offset(arg, offset);
+                offset += 8;
+            }
+
             self.emit_for_block(body);
+
+            // Dealloc args
+            self.end_var_scope_without_dealloc();
 
             self.emit_function_epilogue(true);
         }
