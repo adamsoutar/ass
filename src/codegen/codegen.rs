@@ -64,11 +64,27 @@ impl Codegen {
             ASTNode::FunctionDefinition(func) => {
                 self.emit_for_function_definition(func)
             },
+            ASTNode::FunctionCall(func_call) => {
+                self.emit_for_function_call(func_call)
+            },
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")
             }
         }
+    }
+
+    fn emit_for_function_call (&mut self, func_call: &ASTFunctionCall) {
+        // TODO: On macOS, the stack needs to be 16-bit aligned before calling
+        //       a function.
+
+        // Args are pushed on to the stack in reverse order
+        for arg in func_call.args.iter().rev() {
+            self.emit_for_node(arg);
+            self.emit_str("push %rax");
+        }
+
+        self.emit(format!("call _{}", func_call.name));
     }
 
     fn emit_for_function_definition (&mut self, func: &ASTFunctionDefinition) {
@@ -81,7 +97,18 @@ impl Codegen {
             self.emit(format!("_{}:", func.name));
             self.emit_function_prologue();
 
+            // Alloc arguments
+            self.var_context.push(HashMap::new());
+            let mut offset: isize = 16;
+            for arg in &func.params {
+                self.var_alloc_from_arbitrary_offset(arg, offset);
+                offset += 8;
+            }
+
             self.emit_for_block(body);
+
+            // Dealloc args
+            self.end_var_scope_without_dealloc();
 
             self.emit_function_epilogue(true);
         }
