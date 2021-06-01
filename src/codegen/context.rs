@@ -24,7 +24,7 @@ impl Codegen {
     // This is emitted when a function returns at any time
     // Depth is how many compound statements deep we are at the time of returning.
     // Eg. in an if statement within a function is depth: 2
-    pub fn end_runtime_var_scope (&mut self) {
+    pub fn end_runtime_var_scope (&mut self, mutate_stack_offset: bool) {
         let mut dealloc_bytes = 0;
 
         for i in (0..self.var_context.len()).rev() {
@@ -36,7 +36,9 @@ impl Codegen {
         }
 
         self.emit(format!("addq ${}, %rsp", dealloc_bytes));
-        self.stack_offset += dealloc_bytes as isize;
+        if mutate_stack_offset {
+            self.stack_offset += dealloc_bytes as isize;
+        }
     }
 
     pub fn var_alloc_from_arbitrary_offset (&mut self, name: &String, offset: isize) {
@@ -64,6 +66,6 @@ impl Codegen {
     }
 
     pub fn emit_var_alloc_from_eax (&mut self, name: &String) {
-        self.emit_var_alloc_from_location(name, "%eax")
+        self.emit_var_alloc_from_location(name, "%rax")
     }
 }

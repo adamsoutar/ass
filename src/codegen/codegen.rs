@@ -33,10 +33,10 @@ impl Codegen {
         }
     }
 
-    fn emit_for_block (&mut self, block: &Vec<ASTNode>) {
+    fn emit_for_block (&mut self, block: &Vec<ASTNode>, mutate_stack_offset: bool) {
         self.begin_var_scope();
         for node in block { self.emit_for_node(node) }
-        self.end_runtime_var_scope();
+        self.end_runtime_var_scope(mutate_stack_offset);
         self.end_compiletime_var_scope();
     }
 
@@ -47,7 +47,7 @@ impl Codegen {
             },
             ASTNode::ReturnStatement(ret) => {
                 self.emit_for_node(&ret);
-                self.end_runtime_var_scope();
+                self.end_runtime_var_scope(false);
                 self.emit_function_epilogue(false);
             },
             ASTNode::UnaryOperation(unar) => {
@@ -64,7 +64,7 @@ impl Codegen {
                 self.emit(format!("movq {}(%rbp), %rax", offset))
             }
             ASTNode::BlockStatement(stmts) => {
-                self.emit_for_block(stmts)
+                self.emit_for_block(stmts, false)
             },
             ASTNode::IfStatement(if_stmt) => {
                 self.emit_for_if_statement(if_stmt)
@@ -133,7 +133,7 @@ impl Codegen {
                 offset += 8;
             }
 
-            self.emit_for_block(body);
+            self.emit_for_block(body, true);
 
             // Dealloc args
             self.end_var_scope_without_dealloc();
@@ -192,6 +192,14 @@ impl Codegen {
                     self.emit_str("movl %ecx, %eax");
                     self.emit_str("cdq");
                     self.emit_str("idivl %r8d");
+                },
+                "%" => {
+                    // TODO: Share more code between / and %
+                    self.emit_str("movl %eax, %r8d");
+                    self.emit_str("movl %ecx, %eax");
+                    self.emit_str("cdq");
+                    self.emit_str("idivl %r8d");
+                    self.emit_str("movq %rdx, %rax");
                 },
                 "==" => {
                     self.emit_for_comparison_precursor();
