@@ -32,7 +32,7 @@ impl Codegen {
             // Each stack item is 64 bits (8 bytes)
             // We need to dealloc this scope by moving up
             // the stack pointer so future vars are alloced higher
-            dealloc_bytes = scope.len() * 8;
+            dealloc_bytes += scope.len() * 8;
         }
 
         self.emit(format!("addq ${}, %rsp", dealloc_bytes));
