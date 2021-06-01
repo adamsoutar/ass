@@ -16,12 +16,25 @@ impl Codegen {
     pub fn begin_var_scope (&mut self) {
         self.var_context.push(HashMap::new());
     }
-    pub fn end_var_scope (&mut self) {
-        let popped_scope = self.var_context.pop().unwrap();
-        // Each stack item is 64 bits (8 bytes)
-        // We need to dealloc this scope by moving up
-        // the stack pointer so future vars are alloced higher
-        let dealloc_bytes = popped_scope.len() * 8;
+
+    // This is emitted when curly braces end
+    pub fn end_compiletime_var_scope (&mut self) {
+        self.var_context.pop();
+    }
+    // This is emitted when a function returns at any time
+    // Depth is how many compound statements deep we are at the time of returning.
+    // Eg. in an if statement within a function is depth: 2
+    pub fn end_runtime_var_scope (&mut self) {
+        let mut dealloc_bytes = 0;
+
+        for i in (0..self.var_context.len()).rev() {
+            let scope = &self.var_context[i];
+            // Each stack item is 64 bits (8 bytes)
+            // We need to dealloc this scope by moving up
+            // the stack pointer so future vars are alloced higher
+            dealloc_bytes += scope.len() * 8;
+        }
+
         self.emit(format!("addq ${}, %rsp", dealloc_bytes));
         self.stack_offset += dealloc_bytes as isize;
     }
