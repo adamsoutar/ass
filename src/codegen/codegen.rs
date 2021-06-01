@@ -1,9 +1,17 @@
+use std::cmp::min;
 use std::collections::hash_map::HashMap;
 use crate::parser::ast_utils::*;
 use crate::parser::tokens::*;
 use crate::parser::ast_printer::print_ast_node;
 
 // AMD64 assembly codegen
+
+// In the x86-64 System V calling convention macOS uses,
+// args are passed in certain registers and then on the stack
+static ARGUMENT_LOCATIONS: &[&str] = &[
+    "%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"
+];
+static MAX_ARGS: usize = ARGUMENT_LOCATIONS.len();
 
 pub struct Codegen {
     pub ast: Vec<ASTNode>,
@@ -75,8 +83,18 @@ impl Codegen {
         // TODO: On macOS, the stack needs to be 16-bit aligned before calling
         //       a function.
 
-        // Args are pushed on to the stack in reverse order
-        for arg in func_call.args.iter().rev() {
+        // First 6 args are put into registers
+        let reg_args = min(func_call.args.len(), MAX_ARGS);
+        for i in 0..reg_args {
+            let arg = &func_call.args[i];
+            let arg_loc = ARGUMENT_LOCATIONS[i];
+            self.emit_for_node(arg);
+            self.emit(format!("movq %rax, {}", arg_loc));
+        }
+
+        // Additional args are pushed on to the stack in reverse order
+        for i in (MAX_ARGS..func_call.args.len()).rev() {
+            let arg = &func_call.args[i];
             self.emit_for_node(arg);
             self.emit_str("push %rax");
         }
@@ -93,8 +111,18 @@ impl Codegen {
 
             // Alloc arguments
             self.var_context.push(HashMap::new());
+
+            let reg_args = min(func.params.len(), MAX_ARGS);
+            for i in 0..reg_args {
+                let arg = &func.params[i];
+                let arg_loc = ARGUMENT_LOCATIONS[i];
+                self.emit_var_alloc_from_location(arg, arg_loc);
+            }
+
+            // Additional args are in the stack in reverse order
             let mut offset: isize = 16;
-            for arg in &func.params {
+            for i in (MAX_ARGS..func.params.len()).rev() {
+                let arg = &func.params[i];
                 self.var_alloc_from_arbitrary_offset(arg, offset);
                 offset += 8;
             }

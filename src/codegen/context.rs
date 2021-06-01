@@ -36,8 +36,8 @@ impl Codegen {
         self.var_context.pop();
     }
 
-    pub fn emit_var_alloc_from_eax (&mut self, name: &String) {
-        self.emit_str("push %rax");
+    pub fn emit_var_alloc_from_location(&mut self, name: &String, location: &str) {
+        self.emit(format!("push {}", location));
         self.stack_offset -= 8;
 
         let latest = self.var_context.len() - 1;
@@ -48,5 +48,9 @@ impl Codegen {
         }
 
         map.insert(name.clone(), self.stack_offset);
+    }
+
+    pub fn emit_var_alloc_from_eax (&mut self, name: &String) {
+        self.emit_var_alloc_from_location(name, "%eax")
     }
 }
