@@ -68,4 +68,25 @@ impl Codegen {
     pub fn emit_var_alloc_from_eax (&mut self, name: &String) {
         self.emit_var_alloc_from_location(name, "%rax")
     }
+
+    // NOTE: If you want to align when you're just about to push
+    // some new stuff, but that stuff needs to be on top, provide
+    // the future bytes eg. -8
+    // Returns how many pushes it did to align the stack
+    pub fn align_stack (&mut self, future_bytes: isize) -> usize {
+        let total = self.stack_offset + future_bytes;
+        if total % 16 != 0 {
+            self.emit_str("push $0");
+            self.stack_offset -= 8;
+            return 1;
+        }
+        0
+    }
+
+    pub fn dealign_stack (&mut self, pushes: usize) {
+        for _ in 0..pushes {
+            self.emit_str("pop %r8");
+            self.stack_offset += 8;
+        }
+    }
 }

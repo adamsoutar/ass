@@ -95,6 +95,9 @@ impl Codegen {
             self.emit(format!("movq %rax, {}", arg_loc));
         }
 
+        let arg_allocs = (MAX_ARGS..func_call.args.len()).len() as isize;
+        let pushes = self.align_stack(arg_allocs * -8);
+
         // Additional args are pushed on to the stack in reverse order
         for i in (MAX_ARGS..func_call.args.len()).rev() {
             let arg = &func_call.args[i];
@@ -103,6 +106,8 @@ impl Codegen {
         }
 
         self.emit(format!("call _{}", func_call.name));
+
+        self.dealign_stack(pushes);
     }
 
     fn emit_for_function_definition (&mut self, func: &ASTFunctionDefinition) {
