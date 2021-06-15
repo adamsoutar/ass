@@ -25,15 +25,11 @@ impl Codegen {
     // Depth is how many compound statements deep we are at the time of returning.
     // Eg. in an if statement within a function is depth: 2
     pub fn end_runtime_var_scope (&mut self, mutate_stack_offset: bool) {
-        let mut dealloc_bytes = 0;
-
-        for i in (0..self.var_context.len()).rev() {
-            let scope = &self.var_context[i];
-            // Each stack item is 64 bits (8 bytes)
-            // We need to dealloc this scope by moving up
-            // the stack pointer so future vars are alloced higher
-            dealloc_bytes += scope.len() * 8;
-        }
+        let scope = &self.var_context[self.var_context.len() - 1];
+        // Each stack item is 64 bits (8 bytes)
+        // We need to dealloc this scope by moving up
+        // the stack pointer so future vars are alloced higher
+        let dealloc_bytes = scope.len() * 8;
 
         self.emit(format!("addq ${}, %rsp", dealloc_bytes));
         if mutate_stack_offset {
