@@ -17,7 +17,17 @@ impl Tokeniser {
             return
         }
 
-        let c = self.code.read();
+        let mut c = self.code.read();
+
+        if self.is_comment_coming(c) {
+            self.eat_comment();
+            c = self.code.read();
+        }
+        // TODO: De-duplication?
+        if self.code.eof {
+            self.eof = true;
+            return
+        }
 
         if is_number(&c) {
             self.current = self.read_number(c);
@@ -67,6 +77,18 @@ impl Tokeniser {
         }
         let st = String::from_iter(vc);
         Token::Integer(st.parse().unwrap())
+    }
+
+    fn is_comment_coming (&self, first: char) -> bool {
+        let next = self.code.peek();
+        first == '/' && (next == '/' || next == '*')
+    }
+
+    fn eat_comment (&mut self) {
+        let second_char = self.code.read();
+        if second_char == '*' { unimplemented!("Multi-line comments") }
+        while !self.code.eof && self.code.peek() != '\n' { self.code.read(); }
+        self.eat_whitespace();
     }
 
     fn eat_whitespace (&mut self) {

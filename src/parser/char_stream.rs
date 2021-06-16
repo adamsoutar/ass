@@ -5,7 +5,7 @@ pub struct CharStream {
 }
 
 impl CharStream {
-    pub fn peek (&mut self) -> char {
+    pub fn peek (&self) -> char {
         self.code[self.index]
     }
 
