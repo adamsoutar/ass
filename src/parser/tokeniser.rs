@@ -19,7 +19,7 @@ impl Tokeniser {
 
         let mut c = self.code.read();
 
-        if self.is_comment_coming(c) {
+        while self.is_comment_coming(c) {
             self.eat_comment();
             c = self.code.read();
         }
@@ -86,8 +86,19 @@ impl Tokeniser {
 
     fn eat_comment (&mut self) {
         let second_char = self.code.read();
-        if second_char == '*' { unimplemented!("Multi-line comments") }
-        while !self.code.eof && self.code.peek() != '\n' { self.code.read(); }
+        if second_char == '*' {
+            while !self.code.eof {
+                let c = self.code.read();
+                if c == '*' && self.code.peek() == '/' {
+                    self.code.read();
+                    break;
+                }
+            }
+        } else {
+            while !self.code.eof && self.code.peek() != '\n' {
+                self.code.read();
+            }
+        }
         self.eat_whitespace();
     }
 
