@@ -14,11 +14,13 @@ impl Codegen {
     }
 
     pub fn begin_var_scope (&mut self) {
+        // println!(" = SCOPE BEGAN = ");
         self.var_context.push(HashMap::new());
     }
 
     // This is emitted when curly braces end
     pub fn end_compiletime_var_scope (&mut self) {
+        // println!(" = COMPILETIME SCOPE ENDED = ");
         self.var_context.pop();
     }
     // This is emitted when a function returns at any time
@@ -30,11 +32,18 @@ impl Codegen {
         // We need to dealloc this scope by moving up
         // the stack pointer so future vars are alloced higher
         let dealloc_bytes = scope.len() * 8;
+        // println!("In this scope:");
+        // for varname in scope {
+        //     println!(" - {} ({})", varname.0, varname.1);
+        // }
 
         self.emit(format!("addq ${}, %rsp", dealloc_bytes));
         if mutate_stack_offset {
             self.stack_offset += dealloc_bytes as isize;
+            // println!("runtime var stack deflation deallocced {} bytes ({})", dealloc_bytes, self.stack_offset);
         }
+
+        // println!(" = RUNTIME SCOPE ENDED = (mutate: {})", mutate_stack_offset);
     }
 
     pub fn var_alloc_from_arbitrary_offset (&mut self, name: &String, offset: isize) {
@@ -50,6 +59,7 @@ impl Codegen {
     pub fn emit_var_alloc_from_location(&mut self, name: &String, location: &str) {
         self.emit(format!("push {}", location));
         self.stack_offset -= 8;
+        // println!("alloc from {} as \"{}\" ({})", location, name, self.stack_offset);
 
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
@@ -71,9 +81,13 @@ impl Codegen {
     // Returns how many pushes it did to align the stack
     pub fn align_stack (&mut self, future_bytes: isize) -> usize {
         let total = self.stack_offset + future_bytes;
+        // println!("stack_offset: {}, future_bytes: {}, total: {}", self.stack_offset, future_bytes, total);
         if total % 16 != 0 {
-            self.emit_str("push $0");
-            self.stack_offset -= 8;
+            // println!("Emitting");
+            self.counter += 1;
+            self.emit_var_alloc_from_location(&format!("__ASS_ALIGN_{}", self.counter), "$0");
+            // self.emit_str("push $0");
+            // self.stack_offset -= 8;
             return 1;
         }
         0

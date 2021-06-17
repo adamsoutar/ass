@@ -16,8 +16,8 @@ static MAX_ARGS: usize = ARGUMENT_LOCATIONS.len();
 pub struct Codegen {
     pub ast: Vec<ASTNode>,
     pub generated: String,
-    // Used to generate unique assembly jump labels
-    pub label_counter: usize,
+    // Used to generate unique assembly jump labels and aligner names
+    pub counter: usize,
     // A stack of hashmaps of local var names to stack offsets
     pub var_context: Vec<HashMap<String, isize>>,
     pub stack_offset: isize,
@@ -33,10 +33,11 @@ impl Codegen {
         }
     }
 
-    fn emit_for_block (&mut self, block: &Vec<ASTNode>, mutate_stack_offset: bool) {
-        self.begin_var_scope();
+    fn emit_for_block (&mut self, block: &Vec<ASTNode>, is_function_body_scope: bool) {
+        // Function scopes are alloced beforehand to put arguments into.
+        if !is_function_body_scope { self.begin_var_scope(); }
         for node in block { self.emit_for_node(node) }
-        self.end_runtime_var_scope(mutate_stack_offset);
+        self.end_runtime_var_scope(true); // Maybe this needs to be is_function_body_scope?
         self.end_compiletime_var_scope();
     }
 
@@ -84,6 +85,7 @@ impl Codegen {
     }
 
     fn emit_for_function_call (&mut self, func_call: &ASTFunctionCall) {
+        // println!("Call to {}", func_call.name);
         // First 6 args are put into registers
         let reg_args = min(func_call.args.len(), MAX_ARGS);
         for i in 0..reg_args {
@@ -119,7 +121,7 @@ impl Codegen {
             self.emit_function_prologue();
 
             // Alloc arguments
-            self.var_context.push(HashMap::new());
+            self.begin_var_scope();
 
             let reg_args = min(func.params.len(), MAX_ARGS);
             for i in 0..reg_args {
@@ -139,7 +141,7 @@ impl Codegen {
             self.emit_for_block(body, true);
 
             // Dealloc args
-            self.end_var_scope_without_dealloc();
+            // self.end_var_scope_without_dealloc();
 
             self.emit_function_epilogue(true);
         }
@@ -343,8 +345,8 @@ impl Codegen {
     }
 
     fn get_unique_label (&mut self, comment: &str) -> String {
-        self.label_counter += 1;
-        format!("_{}_{}", comment, self.label_counter)
+        self.counter += 1;
+        format!("_{}_{}", comment, self.counter)
     }
 
     pub fn emit_str (&mut self, st: &str) {
@@ -359,7 +361,7 @@ impl Codegen {
         Codegen {
             ast,
             generated: String::from(""),
-            label_counter: 0,
+            counter: 0,
             var_context: vec![],
             stack_offset: 0,
             block_depth: 0
