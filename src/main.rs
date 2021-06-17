@@ -9,6 +9,7 @@ use parser::tokeniser::Tokeniser;
 use parser::parser::Parser;
 use codegen::codegen::Codegen;
 
+#[allow(unused_imports)]
 use parser::ast_printer::print_ast_node;
 
 fn main() {

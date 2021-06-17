@@ -75,6 +75,7 @@ impl Codegen {
             ASTNode::FunctionCall(func_call) => {
                 self.emit_for_function_call(func_call)
             },
+            #[allow(unreachable_patterns)]
             _ => {
                 print_ast_node(node, 0);
                 panic!("Node not supported in codegen")
@@ -83,9 +84,6 @@ impl Codegen {
     }
 
     fn emit_for_function_call (&mut self, func_call: &ASTFunctionCall) {
-        // TODO: On macOS, the stack needs to be 16-bit aligned before calling
-        //       a function.
-
         // First 6 args are put into registers
         let reg_args = min(func_call.args.len(), MAX_ARGS);
         for i in 0..reg_args {
