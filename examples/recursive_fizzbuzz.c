@@ -35,6 +35,10 @@ int doFizzBuzz (int n) {
     printNumber(n);
   }
   printNewLine();
+
+  if (n < 100) {
+    doFizzBuzz(n + 1);
+  }
 }
 
 int main () {
