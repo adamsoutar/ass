@@ -9,7 +9,8 @@ pub enum ASTNode {
     BinaryOperation(ASTBinaryOperation),
     VariableDeclaration(ASTVariableDeclaration),
     IfStatement(ASTIfStatement),
-    FunctionCall(ASTFunctionCall)
+    FunctionCall(ASTFunctionCall),
+    WhileLoop(ASTWhileLoop)
 }
 
 #[derive(Clone, PartialEq)]
@@ -50,4 +51,10 @@ pub struct ASTIfStatement {
 pub struct ASTFunctionCall {
     pub name: String,
     pub args: Vec<ASTNode>
+}
+
+#[derive(Clone, PartialEq)]
+pub struct ASTWhileLoop {
+    pub condition: Box<ASTNode>,
+    pub body: Box<ASTNode>
 }

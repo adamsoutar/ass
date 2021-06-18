@@ -177,6 +177,7 @@ impl Parser {
                 "int" => return self.parse_declaration(t),
                 "return" => return self.parse_return_statement(),
                 "if" => return self.parse_if_statement(),
+                "while" => return self.parse_while_loop(),
                 _ => panic!("Unexpected keyword \"{}\"", kwd)
             }
         }
@@ -204,6 +205,19 @@ impl Parser {
             condition,
             body,
             else_stmt
+        })
+    }
+
+    // Similar to an if statement without 'else'
+    fn parse_while_loop (&mut self) -> ASTNode {
+        self.expect_punctuation('(');
+        let condition = Box::new(self.parse_component(0));
+        self.expect_punctuation(')');
+        let body = Box::new(self.parse_component(0));
+
+        ASTNode::WhileLoop(ASTWhileLoop {
+            condition,
+            body
         })
     }
 

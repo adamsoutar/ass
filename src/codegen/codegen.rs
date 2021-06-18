@@ -96,7 +96,7 @@ impl Codegen {
         }
 
         let arg_allocs = (MAX_ARGS..func_call.args.len()).len() as isize;
-        let pushes = self.align_stack(arg_allocs * -8);
+        self.align_stack(arg_allocs * -8);
 
         // Additional args are pushed on to the stack in reverse order
         for i in (MAX_ARGS..func_call.args.len()).rev() {

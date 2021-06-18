@@ -75,6 +75,13 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
             for arg in &func_call.args {
                 print_ast_node(arg, depth + 1);
             }
+        },
+        ASTNode::WhileLoop(while_loop) => {
+            print_at_depth("While loop:".to_string(), depth);
+            print_at_depth("Condition:".to_string(), depth + 1);
+            print_ast_node(&while_loop.condition, depth + 2);
+            print_at_depth("Body:".to_string(), depth + 1);
+            print_ast_node(&while_loop.body, depth + 2);
         }
     }
 }
