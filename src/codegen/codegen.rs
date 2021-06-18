@@ -106,8 +106,6 @@ impl Codegen {
         }
 
         self.emit(format!("call _{}", func_call.name));
-
-        self.dealign_stack(pushes);
     }
 
     fn emit_for_function_definition (&mut self, func: &ASTFunctionDefinition) {

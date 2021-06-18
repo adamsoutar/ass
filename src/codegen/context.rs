@@ -32,7 +32,7 @@ impl Codegen {
         // We need to dealloc this scope by moving up
         // the stack pointer so future vars are alloced higher
         let dealloc_bytes = scope.len() * 8;
-        // println!("In this scope:");
+        // println!("In this scope (stack_offset is {}):", self.stack_offset);
         // for varname in scope {
         //     println!(" - {} ({})", varname.0, varname.1);
         // }
@@ -51,9 +51,6 @@ impl Codegen {
         let map = &mut self.var_context[latest];
 
         map.insert(name.clone(), offset);
-    }
-    pub fn end_var_scope_without_dealloc (&mut self) {
-        self.var_context.pop();
     }
 
     pub fn emit_var_alloc_from_location(&mut self, name: &String, location: &str) {
@@ -78,25 +75,11 @@ impl Codegen {
     // NOTE: If you want to align when you're just about to push
     // some new stuff, but that stuff needs to be on top, provide
     // the future bytes eg. -8
-    // Returns how many pushes it did to align the stack
-    pub fn align_stack (&mut self, future_bytes: isize) -> usize {
+    pub fn align_stack (&mut self, future_bytes: isize) {
         let total = self.stack_offset + future_bytes;
-        // println!("stack_offset: {}, future_bytes: {}, total: {}", self.stack_offset, future_bytes, total);
         if total % 16 != 0 {
-            // println!("Emitting");
             self.counter += 1;
             self.emit_var_alloc_from_location(&format!("__ASS_ALIGN_{}", self.counter), "$0");
-            // self.emit_str("push $0");
-            // self.stack_offset -= 8;
-            return 1;
-        }
-        0
-    }
-
-    pub fn dealign_stack (&mut self, pushes: usize) {
-        for _ in 0..pushes {
-            self.emit_str("pop %r8");
-            self.stack_offset += 8;
         }
     }
 }
