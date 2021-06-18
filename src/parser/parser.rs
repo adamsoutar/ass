@@ -229,15 +229,15 @@ impl Parser {
         let mut declaration = None;
         if !self.is_next_punctuation(';') {
             declaration = Some(Box::new(self.parse_component(0)));
-        }
+        } else { self.tokeniser.read(); }
 
         let mut condition = None;
         if !self.is_next_punctuation(';') {
             condition = Some(Box::new(self.parse_component(0)));
-        }
+        } else { self.tokeniser.read(); }
 
         let mut modification = None;
-        if !self.is_next_punctuation(';') {
+        if !self.is_next_punctuation(')') {
             modification = Some(Box::new(self.parse_component(0)));
         }
 
