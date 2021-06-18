@@ -9,4 +9,5 @@ gcc output.s -o output && \
 ./output
 
 # Print exit code
-echo $?
+# (not as relevant now that we can call putchar())
+# echo $?

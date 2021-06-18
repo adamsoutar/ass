@@ -76,6 +76,9 @@ impl Codegen {
             ASTNode::FunctionCall(func_call) => {
                 self.emit_for_function_call(func_call)
             },
+            ASTNode::WhileLoop(while_loop) => {
+                self.emit_for_while_loop(while_loop)
+            },
             #[allow(unreachable_patterns)]
             _ => {
                 print_ast_node(node, 0);
@@ -163,6 +166,25 @@ impl Codegen {
         }
 
         self.emit(format!("{}:", skip_label));
+    }
+
+    fn emit_for_while_loop (&mut self, while_loop: &ASTWhileLoop) {
+        let start_label = self.get_unique_label("while_start");
+        let end_label = self.get_unique_label("while_end");
+        self.emit(format!("{}:", start_label));
+
+        // Eval condition
+        self.emit_for_node(&while_loop.condition);
+        self.emit_str("cmpl $0, %eax");
+        self.emit(format!("je {}", end_label));
+
+        // Run body
+        self.emit_for_node(&while_loop.body);
+
+        // Unconditionally jump to top
+        self.emit(format!("jmp {}", start_label));
+
+        self.emit(format!("{}:", end_label));
     }
 
     fn emit_for_variable_declaration (&mut self, var: &ASTVariableDeclaration) {
