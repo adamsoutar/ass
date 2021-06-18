@@ -37,7 +37,7 @@ impl Codegen {
         // Function scopes are alloced beforehand to put arguments into.
         if !is_function_body_scope { self.begin_var_scope(); }
         for node in block { self.emit_for_node(node) }
-        self.end_runtime_var_scope(true); // Maybe this needs to be is_function_body_scope?
+        self.end_runtime_var_scope(true);
         self.end_compiletime_var_scope();
     }
 
@@ -78,6 +78,9 @@ impl Codegen {
             },
             ASTNode::WhileLoop(while_loop) => {
                 self.emit_for_while_loop(while_loop)
+            },
+            ASTNode::ForLoop(for_loop) => {
+                self.emit_for_for_loop(for_loop)
             },
             #[allow(unreachable_patterns)]
             _ => {
@@ -185,6 +188,45 @@ impl Codegen {
         self.emit(format!("jmp {}", start_label));
 
         self.emit(format!("{}:", end_label));
+    }
+
+    // Not a typo :)
+    fn emit_for_for_loop (&mut self, for_loop: &ASTForLoop) {
+        // Alloc a higher scope for the loop counter - it can be
+        // shadowed from within
+        self.begin_var_scope();
+
+        if let Some(declaration) = &for_loop.declaration {
+            self.emit_for_node(declaration);
+        }
+
+        let start_label = self.get_unique_label("for_start");
+        let end_label = self.get_unique_label("for_end");
+
+        self.emit(format!("{}:", start_label));
+
+        if let Some(condition) = &for_loop.condition {
+            self.emit_for_node(condition);
+        } else {
+            // If condition is empty, it's truthy
+            self.emit_str("mov $1, %eax");
+        }
+
+        self.emit_str("cmpl $0, %eax");
+        self.emit(format!("je {}", end_label));
+
+        self.emit_for_node(&for_loop.body);
+
+        if let Some(modification) = &for_loop.modification {
+            self.emit_for_node(modification);
+        }
+
+        self.emit(format!("jmp {}", start_label));
+
+        self.emit(format!("{}:", end_label));
+
+        self.end_runtime_var_scope(true);
+        self.end_compiletime_var_scope();
     }
 
     fn emit_for_variable_declaration (&mut self, var: &ASTVariableDeclaration) {
