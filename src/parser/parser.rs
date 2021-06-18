@@ -178,6 +178,7 @@ impl Parser {
                 "return" => return self.parse_return_statement(),
                 "if" => return self.parse_if_statement(),
                 "while" => return self.parse_while_loop(),
+                "for" => return self.parse_for_loop(),
                 _ => panic!("Unexpected keyword \"{}\"", kwd)
             }
         }
@@ -217,6 +218,37 @@ impl Parser {
 
         ASTNode::WhileLoop(ASTWhileLoop {
             condition,
+            body
+        })
+    }
+
+    // Quite complicated
+    fn parse_for_loop (&mut self) -> ASTNode {
+        self.expect_punctuation('(');
+
+        let mut declaration = None;
+        if !self.is_next_punctuation(';') {
+            declaration = Some(Box::new(self.parse_component(0)));
+        }
+
+        let mut condition = None;
+        if !self.is_next_punctuation(';') {
+            condition = Some(Box::new(self.parse_component(0)));
+        }
+
+        let mut modification = None;
+        if !self.is_next_punctuation(';') {
+            modification = Some(Box::new(self.parse_component(0)));
+        }
+
+        self.expect_punctuation(')');
+
+        let body = Box::new(self.parse_component(0));
+
+        ASTNode::ForLoop(ASTForLoop {
+            declaration,
+            condition,
+            modification,
             body
         })
     }

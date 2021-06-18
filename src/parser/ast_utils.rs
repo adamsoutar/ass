@@ -10,7 +10,8 @@ pub enum ASTNode {
     VariableDeclaration(ASTVariableDeclaration),
     IfStatement(ASTIfStatement),
     FunctionCall(ASTFunctionCall),
-    WhileLoop(ASTWhileLoop)
+    WhileLoop(ASTWhileLoop),
+    ForLoop(ASTForLoop)
 }
 
 #[derive(Clone, PartialEq)]
@@ -56,5 +57,16 @@ pub struct ASTFunctionCall {
 #[derive(Clone, PartialEq)]
 pub struct ASTWhileLoop {
     pub condition: Box<ASTNode>,
+    pub body: Box<ASTNode>
+}
+
+#[derive(Clone, PartialEq)]
+pub struct ASTForLoop {
+    // Run once at start of loop
+    pub declaration: Option<Box<ASTNode>>,
+    // Checked each iteration
+    pub condition: Option<Box<ASTNode>>,
+    // Run at the end(!) of every iteration
+    pub modification: Option<Box<ASTNode>>,
     pub body: Box<ASTNode>
 }

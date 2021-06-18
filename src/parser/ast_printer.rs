@@ -82,6 +82,24 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
             print_ast_node(&while_loop.condition, depth + 2);
             print_at_depth("Body:".to_string(), depth + 1);
             print_ast_node(&while_loop.body, depth + 2);
+        },
+        ASTNode::ForLoop(for_loop) => {
+            // These are complicated AST nodes :)
+            print_at_depth("For loop:".to_string(), depth);
+            if let Some(declaration) = &for_loop.declaration {
+                print_at_depth("Declaration:".to_string(), depth + 1);
+                print_ast_node(declaration, depth + 2);
+            }
+            if let Some(condition) = &for_loop.condition {
+                print_at_depth("Condition".to_string(), depth + 1);
+                print_ast_node(condition, depth + 2);
+            }
+            if let Some(modification) = &for_loop.modification {
+                print_at_depth("Modification:".to_string(), depth + 1);
+                print_ast_node(modification, depth + 2);
+            }
+            print_at_depth("Body:".to_string(), depth + 1);
+            print_ast_node(&for_loop.body, depth + 2);
         }
     }
 }
