@@ -54,6 +54,7 @@ impl Codegen {
         self.emit_str(".align 3"); // 2 to the power of 3, 8 bytes - 64 bit
         self.emit(format!("{}:", label));
         self.emit(format!(".quad {}", value));
+        self.emit_str(".text");
 
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
