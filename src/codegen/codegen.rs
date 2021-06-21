@@ -4,6 +4,7 @@ use crate::parser::ast_utils::*;
 use crate::parser::tokens::*;
 use crate::parser::ast_printer::print_ast_node;
 use super::stored_value::StoredValue;
+use super::constexpr::get_constant_value_from_node;
 
 // AMD64 assembly codegen
 
@@ -240,7 +241,7 @@ impl Codegen {
         if self.var_context.len() == 1 {
             // If only the global context exists, this is a global variable
             let constant_value = match &var.initial_value {
-                Some(init) => self.get_constant_value_from_node(init),
+                Some(init) => get_constant_value_from_node(init),
                 None => 0,
             };
 
