@@ -3,6 +3,7 @@ use std::collections::hash_map::HashMap;
 use crate::parser::ast_utils::*;
 use crate::parser::tokens::*;
 use crate::parser::ast_printer::print_ast_node;
+use super::stored_value::StoredValue;
 
 // AMD64 assembly codegen
 
@@ -19,7 +20,7 @@ pub struct Codegen {
     // Used to generate unique assembly jump labels and aligner names
     pub counter: usize,
     // A stack of hashmaps of local var names to stack offsets
-    pub var_context: Vec<HashMap<String, isize>>,
+    pub var_context: Vec<HashMap<String, StoredValue>>,
     pub stack_offset: isize,
     pub block_depth: usize
 }
@@ -61,8 +62,8 @@ impl Codegen {
                 self.emit_for_variable_declaration(var)
             },
             ASTNode::Identifier(ident) => {
-                let offset = self.find_var(ident);
-                self.emit(format!("movq {}(%rbp), %rax", offset))
+                let stored = self.find_var(ident).clone();
+                self.emit_for_stored_value_access(&stored)
             }
             ASTNode::BlockStatement(stmts) => {
                 self.emit_for_block(stmts, false)
@@ -131,14 +132,14 @@ impl Codegen {
             for i in 0..reg_args {
                 let arg = &func.params[i];
                 let arg_loc = ARGUMENT_LOCATIONS[i];
-                self.emit_var_alloc_from_location(arg, arg_loc);
+                self.emit_stack_alloc_from_location(arg, arg_loc);
             }
 
             // Additional args are in the stack in reverse order
             let mut offset: isize = 16;
             for i in (MAX_ARGS..func.params.len()).rev() {
                 let arg = &func.params[i];
-                self.var_alloc_from_arbitrary_offset(arg, offset);
+                self.stack_alloc_from_arbitrary_offset(arg, offset);
                 offset += 8;
             }
 
@@ -346,17 +347,17 @@ impl Codegen {
             },
             // Assignemnts (remember these are expressions with a value!)
             "=" => {
-                let ass_offset = self.find_assignable(&bin.left_side);
+                let loc = self.get_assignable_location(&bin.left_side);
                 self.emit_for_node(&bin.right_side);
-                self.emit(format!("movq %rax, {}(%rbp)", ass_offset));
+                self.emit(format!("movq %rax, {}", loc));
             },
             _ => unimplemented!("\"{}\" non-stack operator", bin.operator)
         }
     }
 
-    fn find_assignable (&self, node: &ASTNode) -> isize {
+    fn get_assignable_location (&self, node: &ASTNode) -> String {
         match &node {
-            ASTNode::Identifier(ident) => self.find_var(ident),
+            ASTNode::Identifier(ident) => self.get_stored_value_location(self.find_var(ident)),
             _ => panic!("Cannot resolve non-identifier assignable")
         }
     }

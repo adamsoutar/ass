@@ -1,12 +1,13 @@
 // Methods for finding variables
 use std::collections::hash_map::HashMap;
-use crate::codegen::codegen::Codegen;
+use super::codegen::Codegen;
+use super::stored_value::StoredValue;
 
 impl Codegen {
-    pub fn find_var (&self, name: &String) -> isize {
+    pub fn find_var (&self, name: &String) -> &StoredValue {
         for map in self.var_context.iter().rev() {
             if map.contains_key(name) {
-                return map[name];
+                return &map[name];
             }
         }
 
@@ -46,14 +47,14 @@ impl Codegen {
         // println!(" = RUNTIME SCOPE ENDED = (mutate: {})", mutate_stack_offset);
     }
 
-    pub fn var_alloc_from_arbitrary_offset (&mut self, name: &String, offset: isize) {
+    pub fn stack_alloc_from_arbitrary_offset (&mut self, name: &String, offset: isize) {
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
 
-        map.insert(name.clone(), offset);
+        map.insert(name.clone(), StoredValue::Stack(offset));
     }
 
-    pub fn emit_var_alloc_from_location(&mut self, name: &String, location: &str) {
+    pub fn emit_stack_alloc_from_location(&mut self, name: &String, location: &str) {
         self.emit(format!("push {}", location));
         self.stack_offset -= 8;
         // println!("alloc from {} as \"{}\" ({})", location, name, self.stack_offset);
@@ -65,11 +66,11 @@ impl Codegen {
             panic!("Redefinition of \"{}\" in the same scope", name);
         }
 
-        map.insert(name.clone(), self.stack_offset);
+        map.insert(name.clone(), StoredValue::Stack(self.stack_offset));
     }
 
     pub fn emit_var_alloc_from_eax (&mut self, name: &String) {
-        self.emit_var_alloc_from_location(name, "%rax")
+        self.emit_stack_alloc_from_location(name, "%rax")
     }
 
     // NOTE: If you want to align when you're just about to push
@@ -79,7 +80,7 @@ impl Codegen {
         let total = self.stack_offset + future_bytes;
         if total % 16 != 0 {
             self.counter += 1;
-            self.emit_var_alloc_from_location(&format!("__ASS_ALIGN_{}", self.counter), "$0");
+            self.emit_stack_alloc_from_location(&format!("__ASS_ALIGN_{}", self.counter), "$0");
         }
     }
 }
