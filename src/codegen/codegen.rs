@@ -28,6 +28,9 @@ pub struct Codegen {
 impl Codegen {
     pub fn generate (&mut self) {
         self.generated = String::from("");
+        // There is a global variable context that never ends.
+        // This cannot have stack vars in it and does not get cleaned up.
+        self.begin_var_scope();
 
         for node in self.ast.clone() {
             self.emit_for_node(&node)
@@ -233,11 +236,26 @@ impl Codegen {
     fn emit_for_variable_declaration (&mut self, var: &ASTVariableDeclaration) {
         // If there's an initial value, we'll put it in eax, if not we'll
         // shove whatever random vallue we were last using in there (it's UB)
-        if let Some(init) = &var.initial_value {
-            self.emit_for_node(init);
-        }
 
-        self.emit_var_alloc_from_eax(&var.identifier);
+        if self.var_context.len() == 1 {
+            // If only the global context exists, this is a global variable
+            let constant_value = match &var.initial_value {
+                Some(init) => self.get_constant_value_from_node(init),
+                None => 0,
+            };
+
+            self.emit_global_alloc_from_constant(
+                &var.identifier,
+                constant_value
+            );
+        } else {
+            // Else it is a local (stack) variable
+            if let Some(init) = &var.initial_value {
+                self.emit_for_node(init);
+            }
+
+            self.emit_stack_alloc_from_rax(&var.identifier);
+        }
     }
 
     fn emit_for_binary_operation (&mut self, bin: &ASTBinaryOperation) {

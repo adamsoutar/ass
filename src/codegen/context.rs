@@ -47,6 +47,19 @@ impl Codegen {
         // println!(" = RUNTIME SCOPE ENDED = (mutate: {})", mutate_stack_offset);
     }
 
+    pub fn emit_global_alloc_from_constant (&mut self, name: &String, value: isize) {
+        let label = self.get_global_var_label(name);
+        self.emit(format!(".globl {}", label));
+        self.emit_str(".data");
+        self.emit_str(".align 3"); // 2 to the power of 3, 8 bytes - 64 bit
+        self.emit(format!("{}:", label));
+        self.emit(format!(".quad {}", value));
+
+        let latest = self.var_context.len() - 1;
+        let map = &mut self.var_context[latest];
+        map.insert(name.clone(), StoredValue::Global(name.clone()));
+    }
+
     pub fn stack_alloc_from_arbitrary_offset (&mut self, name: &String, offset: isize) {
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
@@ -69,7 +82,7 @@ impl Codegen {
         map.insert(name.clone(), StoredValue::Stack(self.stack_offset));
     }
 
-    pub fn emit_var_alloc_from_eax (&mut self, name: &String) {
+    pub fn emit_stack_alloc_from_rax (&mut self, name: &String) {
         self.emit_stack_alloc_from_location(name, "%rax")
     }
 
@@ -82,5 +95,12 @@ impl Codegen {
             self.counter += 1;
             self.emit_stack_alloc_from_location(&format!("__ASS_ALIGN_{}", self.counter), "$0");
         }
+    }
+
+    pub fn get_global_var_label (&self, name: &String) -> String {
+        // This isn't technically requried, we're just making sure you don't
+        // accidentally name your variable after a jump label ass happens to
+        // be using, as unlikely as that is.
+        format!("_GLOBAL_VAR_{}", name)
     }
 }

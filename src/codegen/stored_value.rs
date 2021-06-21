@@ -14,7 +14,8 @@ impl Codegen {
                 format!("{}(%rbp)", offset)
             },
             StoredValue::Global(ident) => {
-                format!("TODO ({})", ident)
+                let label = self.get_global_var_label(ident);
+                format!("{}(%rip)", label)
             }
         }
     }
