@@ -1,7 +1,9 @@
 // Methods for finding variables
 use std::collections::hash_map::HashMap;
 use super::codegen::Codegen;
-use super::stored_value::StoredValue;
+use super::stored_value::*;
+use crate::parser::types::*;
+use crate::parser::ast_utils::ASTNameAndType;
 
 impl Codegen {
     pub fn find_var (&self, name: &String) -> &StoredValue {
@@ -58,17 +60,28 @@ impl Codegen {
 
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
-        map.insert(name.clone(), StoredValue::Global(name.clone()));
+
+        map.insert(name.clone(), StoredValue {
+            backing_store: ValueBackingStorage::Global(name.clone()),
+            value_type: Type::Int(IntegerTypeMetadata {
+                signed: true
+            })
+        });
     }
 
     pub fn stack_alloc_from_arbitrary_offset (&mut self, name: &String, offset: isize) {
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
 
-        map.insert(name.clone(), StoredValue::Stack(offset));
+        map.insert(name.clone(), StoredValue {
+            backing_store: ValueBackingStorage::Stack(offset),
+            value_type: Type::Int(IntegerTypeMetadata {
+                signed: true
+            })
+        });
     }
 
-    pub fn emit_stack_alloc_from_location(&mut self, name: &String, location: &str) {
+    pub fn emit_stack_alloc_from_location(&mut self, var: &ASTNameAndType, location: &str) {
         self.emit(format!("push {}", location));
         self.stack_offset -= 8;
         // println!("alloc from {} as \"{}\" ({})", location, name, self.stack_offset);
@@ -76,15 +89,20 @@ impl Codegen {
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
 
-        if map.contains_key(name) {
-            panic!("Redefinition of \"{}\" in the same scope", name);
+        if map.contains_key(&var.name) {
+            panic!("Redefinition of \"{}\" in the same scope", &var.name);
         }
 
-        map.insert(name.clone(), StoredValue::Stack(self.stack_offset));
+        map.insert(var.name.clone(), StoredValue {
+            backing_store: ValueBackingStorage::Stack(self.stack_offset),
+            value_type: Type::Int(IntegerTypeMetadata {
+                signed: true
+            })
+        });
     }
 
-    pub fn emit_stack_alloc_from_rax (&mut self, name: &String) {
-        self.emit_stack_alloc_from_location(name, "%rax")
+    pub fn emit_stack_alloc_from_rax (&mut self, var: &ASTNameAndType) {
+        self.emit_stack_alloc_from_location(var, "%rax")
     }
 
     // NOTE: If you want to align when you're just about to push
@@ -94,7 +112,10 @@ impl Codegen {
         let total = self.stack_offset + future_bytes;
         if total % 16 != 0 {
             self.counter += 1;
-            self.emit_stack_alloc_from_location(&format!("__ASS_ALIGN_{}", self.counter), "$0");
+            self.emit_stack_alloc_from_location(&ASTNameAndType {
+                name: format!("__ASS_ALIGN_{}", self.counter),
+                param_type: Type::LongLongInt(IntegerTypeMetadata { signed: false })
+            }, "$0");
         }
     }
 

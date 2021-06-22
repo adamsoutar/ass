@@ -22,10 +22,10 @@ pub struct ASTFunctionDefinition {
     pub return_type: Type,
     // If this option is None, it's a function declaration without an implementation
     pub body: Option<Vec<ASTNode>>,
-    pub params: Vec<ASTFunctionParameter>
+    pub params: Vec<ASTNameAndType>
 }
 #[derive(Clone, PartialEq)]
-pub struct ASTFunctionParameter {
+pub struct ASTNameAndType {
     pub name: String,
     pub param_type: Type
 }

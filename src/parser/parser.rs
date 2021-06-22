@@ -311,7 +311,7 @@ impl Parser {
                     Token::Identifier(ident) => ident,
                     _ => panic!("Function parameters must be identifiers")
                 };
-                params.push(ASTFunctionParameter {
+                params.push(ASTNameAndType {
                     name: param_name,
                     param_type
                 });

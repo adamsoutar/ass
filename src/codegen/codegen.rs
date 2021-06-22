@@ -68,7 +68,7 @@ impl Codegen {
             ASTNode::Identifier(ident) => {
                 let stored = self.find_var(ident).clone();
                 self.emit_for_stored_value_access(&stored)
-            }
+            },
             ASTNode::BlockStatement(stmts) => {
                 self.emit_for_block(stmts, false)
             },
@@ -136,7 +136,7 @@ impl Codegen {
             for i in 0..reg_args {
                 let arg = &func.params[i];
                 let arg_loc = ARGUMENT_LOCATIONS[i];
-                self.emit_stack_alloc_from_location(&arg.name, arg_loc);
+                self.emit_stack_alloc_from_location(&arg, arg_loc);
             }
 
             // Additional args are in the stack in reverse order
@@ -255,7 +255,10 @@ impl Codegen {
                 self.emit_for_node(init);
             }
 
-            self.emit_stack_alloc_from_rax(&var.identifier);
+            self.emit_stack_alloc_from_rax(&ASTNameAndType {
+                name: var.identifier.clone(),
+                param_type: var.var_type.clone()
+            });
         }
     }
 
