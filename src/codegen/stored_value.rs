@@ -29,6 +29,29 @@ impl Codegen {
     }
 
     pub fn emit_for_stored_value_access (&mut self, value: &StoredValue) {
-        self.emit(format!("mov {}, %rax", self.get_stored_value_location(value)))
+        let loc = self.get_stored_value_location(value);
+        match &value.value_type {
+            Type::Char(_) => {
+                // NOTE: Little-endianness on x86 means that even though we're
+                // 64-bit pushing chars, we can retrieve just the top byte of the stack
+                // Byte moves don't auto-clear rax's high bits
+                self.emit_str("mov $0, %rax");
+                self.emit(format!("movb {}, %al", loc));
+            },
+            Type::Short(_) => {
+                self.emit_str("mov $0, %rax");
+                self.emit(format!("mov {}, %ax", loc));
+            },
+            Type::Int(_) => {
+                self.emit(format!("movl {}, %eax", loc));
+            },
+            Type::LongLongInt(_) => {
+                self.emit(format!("movq {}, %rax", loc));
+            },
+            Type::Pointer(_) => {
+                self.emit(format!("movq ({}), %rax", loc));
+            }
+        };
+        // self.emit(format!(format_string, self.get_stored_value_location(value)))
     }
 }

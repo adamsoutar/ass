@@ -143,7 +143,7 @@ impl Codegen {
             let mut offset: isize = 16;
             for i in (MAX_ARGS..func.params.len()).rev() {
                 let arg = &func.params[i];
-                self.stack_alloc_from_arbitrary_offset(&arg.name, offset);
+                self.stack_alloc_from_arbitrary_offset(&arg, offset);
                 offset += 8;
             }
 

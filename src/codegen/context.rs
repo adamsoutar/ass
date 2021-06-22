@@ -69,15 +69,13 @@ impl Codegen {
         });
     }
 
-    pub fn stack_alloc_from_arbitrary_offset (&mut self, name: &String, offset: isize) {
+    pub fn stack_alloc_from_arbitrary_offset (&mut self, var: &ASTNameAndType, offset: isize) {
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
 
-        map.insert(name.clone(), StoredValue {
+        map.insert(var.name.clone(), StoredValue {
             backing_store: ValueBackingStorage::Stack(offset),
-            value_type: Type::Int(IntegerTypeMetadata {
-                signed: true
-            })
+            value_type: var.param_type.clone()
         });
     }
 
@@ -95,9 +93,7 @@ impl Codegen {
 
         map.insert(var.name.clone(), StoredValue {
             backing_store: ValueBackingStorage::Stack(self.stack_offset),
-            value_type: Type::Int(IntegerTypeMetadata {
-                signed: true
-            })
+            value_type: var.param_type.clone()
         });
     }
 
