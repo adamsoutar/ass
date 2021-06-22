@@ -1,7 +1,9 @@
-use crate::parser::ast_utils::*;
-use crate::parser::tokeniser::Tokeniser;
-use crate::parser::tokens::*;
-use crate::parser::token_printer::print_token;
+use super::ast_utils::*;
+use super::tokeniser::Tokeniser;
+use super::tokens::*;
+use super::token_printer::print_token;
+use super::types::Type;
+use crate::parser::types::{IntegerTypeMetadata, PointerTypeMetadata};
 
 pub struct Parser {
     pub tokeniser: Tokeniser
@@ -174,11 +176,11 @@ impl Parser {
         if let Token::Keyword(kwd) = &t {
             let kwdstr = &kwd[..];
             match kwdstr {
-                "int" => return self.parse_declaration(t),
                 "return" => return self.parse_return_statement(),
                 "if" => return self.parse_if_statement(),
                 "while" => return self.parse_while_loop(),
                 "for" => return self.parse_for_loop(),
+                _ if is_builtin_type_name(kwd) => return self.parse_declaration(kwd),
                 _ => panic!("Unexpected keyword \"{}\"", kwd)
             }
         }
@@ -259,8 +261,29 @@ impl Parser {
         ASTNode::ReturnStatement(Box::new(ret_val))
     }
 
+    fn parse_type (&mut self, start_keyword: &String) -> Type {
+        // TODO: Modifiers like long/unsigned
+        let mut the_type = match &start_keyword[..] {
+            "char" => Type::Char(IntegerTypeMetadata { signed: true }),
+            "short" => Type::Short(IntegerTypeMetadata { signed: true }),
+            "int" => Type::Int(IntegerTypeMetadata { signed: true }),
+            _ => unimplemented!("Type {}", start_keyword)
+        };
+
+        while self.is_next_operator("*") {
+            self.tokeniser.read();
+            the_type = Type::Pointer(PointerTypeMetadata {
+                points_to: Box::new(the_type)
+            })
+        }
+
+        the_type
+    }
+
     // Declarations of variables and functions start the same (with a type)
-    fn parse_declaration (&mut self, _t: Token) -> ASTNode {
+    fn parse_declaration (&mut self, type_start_keyword: &String) -> ASTNode {
+        let var_type = self.parse_type(type_start_keyword);
+
         let name_tk = self.tokeniser.read();
         let name = match name_tk {
             Token::Identifier(ident) => ident,
@@ -276,14 +299,22 @@ impl Parser {
 
             // Parse parameters
             let mut params = vec![];
-            while self.is_next_keyword("int") {
-                self.tokeniser.read();
+            while self.is_next_builtin_type_name() {
+                let tk = self.tokeniser.read();
+                let param_type = match tk {
+                    Token::Keyword(kw) => self.parse_type(&kw),
+                    _ => panic!("Expected a type for function param")
+                };
+
                 // For now, we only support named parameters
                 let param_name = match self.tokeniser.read() {
                     Token::Identifier(ident) => ident,
                     _ => panic!("Function parameters must be identifiers")
                 };
-                params.push(param_name);
+                params.push(ASTFunctionParameter {
+                    name: param_name,
+                    param_type
+                });
 
                 // NOTE: This doesn't quite match the standard
                 if self.is_next_punctuation(',') {
@@ -304,6 +335,7 @@ impl Parser {
 
             return ASTNode::FunctionDefinition(ASTFunctionDefinition {
                 name,
+                return_type: var_type,
                 body,
                 params
             })
@@ -317,10 +349,9 @@ impl Parser {
                 initial_value = Some(Box::new(self.parse_component(0)));
             }
 
-            // self.expect_punctuation(';');
-
             ASTNode::VariableDeclaration(ASTVariableDeclaration {
                 identifier: name,
+                var_type,
                 initial_value
             })
         }

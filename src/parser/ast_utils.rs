@@ -1,3 +1,5 @@
+use super::types::Type;
+
 #[derive(Clone, PartialEq)]
 pub enum ASTNode {
     IntegerLiteral(isize),
@@ -17,9 +19,15 @@ pub enum ASTNode {
 #[derive(Clone, PartialEq)]
 pub struct ASTFunctionDefinition {
     pub name: String,
+    pub return_type: Type,
     // If this option is None, it's a function declaration without an implementation
     pub body: Option<Vec<ASTNode>>,
-    pub params: Vec<String>
+    pub params: Vec<ASTFunctionParameter>
+}
+#[derive(Clone, PartialEq)]
+pub struct ASTFunctionParameter {
+    pub name: String,
+    pub param_type: Type
 }
 
 #[derive(Clone, PartialEq)]
@@ -38,6 +46,7 @@ pub struct ASTBinaryOperation {
 #[derive(Clone, PartialEq)]
 pub struct ASTVariableDeclaration {
     pub identifier: String,
+    pub var_type: Type,
     pub initial_value: Option<Box<ASTNode>>
 }
 

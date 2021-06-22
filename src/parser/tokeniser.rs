@@ -44,9 +44,15 @@ impl Tokeniser {
 
     fn read_operator (&mut self, first: char) -> Token {
         let mut oper = vec![first];
-        while !self.code.eof && is_operator_char(&self.code.peek()) {
-            oper.push(self.code.read())
+
+        // * is a special case - we always finish when reading it once.
+        // This is to help with reading double pointers like char**
+        if first != '*' {
+            while !self.code.eof && is_operator_char(&self.code.peek()) {
+                oper.push(self.code.read())
+            }
         }
+
         let op_str = String::from_iter(oper);
 
         if !is_operator(&op_str) {

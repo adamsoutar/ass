@@ -136,14 +136,14 @@ impl Codegen {
             for i in 0..reg_args {
                 let arg = &func.params[i];
                 let arg_loc = ARGUMENT_LOCATIONS[i];
-                self.emit_stack_alloc_from_location(arg, arg_loc);
+                self.emit_stack_alloc_from_location(&arg.name, arg_loc);
             }
 
             // Additional args are in the stack in reverse order
             let mut offset: isize = 16;
             for i in (MAX_ARGS..func.params.len()).rev() {
                 let arg = &func.params[i];
-                self.stack_alloc_from_arbitrary_offset(arg, offset);
+                self.stack_alloc_from_arbitrary_offset(&arg.name, offset);
                 offset += 8;
             }
 

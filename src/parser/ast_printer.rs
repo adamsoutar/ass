@@ -1,6 +1,7 @@
-use crate::parser::ast_utils::*;
+use super::ast_utils::*;
+use super::type_printer::print_type;
 
-fn print_at_depth (s: String, depth: isize) {
+pub fn print_at_depth (s: String, depth: isize) {
     let mut str = String::from("");
     for _ in 0..depth * 4 {
         str += &String::from(" ");
@@ -33,7 +34,8 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
             if func.params.len() > 0 {
                 print_at_depth("Parameters:".to_string(), depth + 1);
                 for param in &func.params {
-                    print_at_depth(format!("- \"{}\"", param), depth + 2);
+                    print_at_depth(format!("- \"{}\"", param.name), depth + 2);
+                    print_type(&param.param_type, depth + 3);
                 }
             }
 
@@ -55,8 +57,10 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
         }
         ASTNode::VariableDeclaration(var) => {
             print_at_depth(format!("Variable declaration: {}", var.identifier), depth);
+            print_type(&var.var_type, depth + 1);
             if let Some(val) = &var.initial_value {
-                print_ast_node(val, depth + 1);
+                print_at_depth("Initial value:".to_string(), depth + 1);
+                print_ast_node(val, depth + 2);
             }
         }
         ASTNode::IfStatement(if_stmt) => {

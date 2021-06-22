@@ -43,14 +43,25 @@ pub fn is_keyword(s: &String) -> bool {
     ])
 }
 
+pub fn is_builtin_type_name(s: &String) -> bool {
+    in_string_vector(s, vec![
+        "char", "short", "int",
+        "float", "double"
+    ])
+}
+pub fn is_builtin_type_modifier(s: &String) -> bool {
+    in_string_vector(s, vec![
+        "long", "signed", "unsigned"
+    ])
+}
+
 pub fn is_operator(s: &String) -> bool {
     in_string_vector(s, vec![
         "==", "+", "-", "*", "/",
-        "!=", "**", "%", "&&", "||",
+        "!=", "%", "&&", "||",
         ">", "<", ">=", "<=",  "!",
         "~", "&", "--", "++", "%=",
-        "*=", "+=", "-=", "/=",
-        "**=", "="
+        "*=", "+=", "-=", "/=", "="
     ])
 }
 pub fn is_assignment_operator (s: &String) -> bool {
@@ -58,8 +69,7 @@ pub fn is_assignment_operator (s: &String) -> bool {
     //       the string without the = char is assumed to be a
     //       valid binary operator.
     in_string_vector(s, vec![
-        "*=", "+=", "-=", "/=", "%=",
-        "**=", "="
+        "*=", "+=", "-=", "/=", "%=", "="
     ])
 }
 pub fn is_unary_operator (s: &String) -> bool {
@@ -79,7 +89,7 @@ pub fn is_binary_operator (s: &String) -> bool {
 pub fn is_binary_stack_operator (s: &String) -> bool {
     in_string_vector(s, vec![
         "+", "-", "/", "*",
-        "%", "**", "==", "!=",
+        "%", "==", "!=",
         ">", "<", ">=", "<="
     ])
 }
