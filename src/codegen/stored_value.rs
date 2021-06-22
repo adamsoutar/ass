@@ -21,6 +21,6 @@ impl Codegen {
     }
 
     pub fn emit_for_stored_value_access (&mut self, value: &StoredValue) {
-        self.emit(format!("movq {}, %rax", self.get_stored_value_location(value)))
+        self.emit(format!("mov {}, %rax", self.get_stored_value_location(value)))
     }
 }

@@ -38,7 +38,7 @@ impl Codegen {
         //     println!(" - {} ({})", varname.0, varname.1);
         // }
 
-        self.emit(format!("addq ${}, %rsp", dealloc_bytes));
+        self.emit(format!("add ${}, %rsp", dealloc_bytes));
         if mutate_stack_offset {
             self.stack_offset += dealloc_bytes as isize;
             // println!("runtime var stack deflation deallocced {} bytes ({})", dealloc_bytes, self.stack_offset);

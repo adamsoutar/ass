@@ -49,7 +49,7 @@ impl Codegen {
     fn emit_for_node (&mut self, node: &ASTNode) {
         match node {
             ASTNode::IntegerLiteral(int) => {
-                self.emit(format!("movl ${}, %eax", int))
+                self.emit(format!("mov ${}, %rax", int))
             },
             ASTNode::ReturnStatement(ret) => {
                 self.emit_for_node(&ret);
@@ -103,7 +103,7 @@ impl Codegen {
             let arg = &func_call.args[i];
             let arg_loc = ARGUMENT_LOCATIONS[i];
             self.emit_for_node(arg);
-            self.emit(format!("movq %rax, {}", arg_loc));
+            self.emit(format!("mov %rax, {}", arg_loc));
         }
 
         let arg_allocs = (MAX_ARGS..func_call.args.len()).len() as isize;
@@ -158,7 +158,7 @@ impl Codegen {
 
     fn emit_for_if_statement (&mut self, if_stmt: &ASTIfStatement) {
         self.emit_for_node(&if_stmt.condition);
-        self.emit_str("cmpl $0, %eax");
+        self.emit_str("cmp $0, %rax");
 
         let skip_label = self.get_unique_label("if_skip");
         let else_label = self.get_unique_label("else");
@@ -183,7 +183,7 @@ impl Codegen {
 
         // Eval condition
         self.emit_for_node(&while_loop.condition);
-        self.emit_str("cmpl $0, %eax");
+        self.emit_str("cmp $0, %rax");
         self.emit(format!("je {}", end_label));
 
         // Run body
@@ -214,10 +214,10 @@ impl Codegen {
             self.emit_for_node(condition);
         } else {
             // If condition is empty, it's truthy
-            self.emit_str("mov $1, %eax");
+            self.emit_str("mov $1, %rax");
         }
 
-        self.emit_str("cmpl $0, %eax");
+        self.emit_str("cmp $0, %rax");
         self.emit(format!("je {}", end_label));
 
         self.emit_for_node(&for_loop.body);
@@ -286,7 +286,7 @@ impl Codegen {
                     self.emit_str("movl %ecx, %eax");
                     self.emit_str("cdq");
                     self.emit_str("idivl %r8d");
-                    self.emit_str("movq %rdx, %rax");
+                    self.emit_str("mov %rdx, %rax");
                 },
                 "==" => {
                     self.emit_for_comparison_precursor();
@@ -358,8 +358,8 @@ impl Codegen {
                 self.emit(format!("{}:", skip_label));
                 self.emit_for_node(&bin.right_side);
 
-                self.emit_str("cmpl $0, %eax");
-                self.emit_str("movl $0, %eax");
+                self.emit_str("cmp $0, %rax");
+                self.emit_str("mov $0, %rax");
                 self.emit_str("setne %al");
 
                 self.emit(format!("{}:", end_label))
@@ -368,7 +368,7 @@ impl Codegen {
             "=" => {
                 let loc = self.get_assignable_location(&bin.left_side);
                 self.emit_for_node(&bin.right_side);
-                self.emit(format!("movq %rax, {}", loc));
+                self.emit(format!("mov %rax, {}", loc));
             },
             _ => unimplemented!("\"{}\" non-stack operator", bin.operator)
         }
@@ -382,8 +382,8 @@ impl Codegen {
     }
 
     fn emit_for_comparison_precursor (&mut self) {
-        self.emit_str("cmpl %eax, %ecx");
-        self.emit_str("movl $0, %eax");
+        self.emit_str("cmp %rax, %rcx");
+        self.emit_str("mov $0, %rax");
     }
 
     fn emit_for_unary_operation (&mut self, unar: &ASTUnaryOperation) {
@@ -397,8 +397,8 @@ impl Codegen {
                 self.emit_str("not %eax")
             },
             "!" => {
-                self.emit_str("cmpl $0, %eax");
-                self.emit_str("movl $0, %eax");
+                self.emit_str("cmp $0, %rax");
+                self.emit_str("mov $0, %rax");
                 self.emit_str("setz %al");
             },
             _ => panic!("Codegen unimplemented for unary operator \"{}\"", unar.operator)
@@ -409,17 +409,17 @@ impl Codegen {
         // Save the old base pointer
         self.emit_str("push %rbp");
         // The stack head is the new base
-        self.emit_str("movq %rsp, %rbp");
+        self.emit_str("mov %rsp, %rbp");
     }
 
     fn emit_function_epilogue (&mut self, gen_return_value: bool) {
         if gen_return_value {
             // Functions without a return statement return 0
-            self.emit_str("movq $0, %rax");
+            self.emit_str("mov $0, %rax");
         }
 
         // Stack head is the base
-        self.emit_str("movq %rbp, %rsp");
+        self.emit_str("mov %rbp, %rsp");
         // Restore the old base
         self.emit_str("pop %rbp");
         // Jump out of func
