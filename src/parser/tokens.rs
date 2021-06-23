@@ -81,6 +81,12 @@ pub fn is_unary_operator (s: &String) -> bool {
         "--", "++"
     ])
 }
+// These are unary operations that do NOT evaluate their operand
+pub fn is_pointer_operator (s: &String) -> bool {
+    in_string_vector(s, vec![
+        "&", "*"
+    ])
+}
 pub fn is_binary_operator (s: &String) -> bool {
     is_operator(s) // TODO: More specific
 }

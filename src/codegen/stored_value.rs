@@ -13,8 +13,6 @@ pub enum ValueBackingStorage {
     Global(String), // Global vars as assembly identifiers
 }
 
-
-
 impl Codegen {
     pub fn get_stored_value_location (&self, value: &StoredValue) -> String {
         match &value.backing_store {
@@ -24,6 +22,24 @@ impl Codegen {
             ValueBackingStorage::Global(ident) => {
                 let label = self.get_global_var_label(ident);
                 format!("{}(%rip)", label)
+            }
+        }
+    }
+
+    // Will emit code that puts the address of the value into %rax
+    // (used for &/* operators)
+    pub fn emit_load_address_of_stored_value (&mut self, value: &StoredValue) {
+        match &value.backing_store {
+            ValueBackingStorage::Stack(offset) => {
+                self.emit_str("movq %rbp, %rax");
+                if *offset > 0 {
+                    self.emit(format!("addq ${}, %rax", offset));
+                } else {
+                    self.emit(format!("subq ${}, %rax", offset.abs()));
+                }
+            },
+            ValueBackingStorage::Global(_ident) => {
+                unimplemented!("AddressOf global variable")
             }
         }
     }
@@ -49,7 +65,7 @@ impl Codegen {
                 self.emit(format!("movq {}, %rax", loc));
             },
             Type::Pointer(_) => {
-                self.emit(format!("movq ({}), %rax", loc));
+                self.emit(format!("movq {}, %rax", loc));
             }
         };
         // self.emit(format!(format_string, self.get_stored_value_location(value)))

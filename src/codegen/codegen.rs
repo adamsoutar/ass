@@ -369,7 +369,7 @@ impl Codegen {
             },
             // Assignemnts (remember these are expressions with a value!)
             "=" => {
-                let loc = self.get_assignable_location(&bin.left_side);
+                let loc = self.get_stored_value_location(self.find_node(&bin.left_side));
                 self.emit_for_node(&bin.right_side);
                 self.emit(format!("mov %rax, {}", loc));
             },
@@ -377,9 +377,9 @@ impl Codegen {
         }
     }
 
-    fn get_assignable_location (&self, node: &ASTNode) -> String {
+    fn find_node (&self, node: &ASTNode) -> &StoredValue {
         match &node {
-            ASTNode::Identifier(ident) => self.get_stored_value_location(self.find_var(ident)),
+            ASTNode::Identifier(ident) => self.find_var(ident),
             _ => panic!("Cannot resolve non-identifier assignable")
         }
     }
@@ -390,21 +390,36 @@ impl Codegen {
     }
 
     fn emit_for_unary_operation (&mut self, unar: &ASTUnaryOperation) {
-        self.emit_for_node(&unar.operand);
+        if is_pointer_operator(&unar.operator) {
+            let value = self.find_node(&unar.operand).clone();
 
-        match &unar.operator[..] {
-            "-" => {
-                self.emit_str("neg %eax")
-            },
-            "~" => {
-                self.emit_str("not %eax")
-            },
-            "!" => {
-                self.emit_str("cmp $0, %rax");
-                self.emit_str("mov $0, %rax");
-                self.emit_str("setz %al");
-            },
-            _ => panic!("Codegen unimplemented for unary operator \"{}\"", unar.operator)
+            match &unar.operator[..] {
+                "&" => {
+                    self.emit_load_address_of_stored_value(&value);
+                },
+                "*" => {
+                    self.emit_for_stored_value_access(&value);
+                    self.emit_str("movq (%rax), %rax");
+                },
+                _ => unimplemented!("Pointer operator {}", unar.operator)
+            }
+        } else {
+            self.emit_for_node(&unar.operand);
+
+            match &unar.operator[..] {
+                "-" => {
+                    self.emit_str("neg %eax")
+                },
+                "~" => {
+                    self.emit_str("not %eax")
+                },
+                "!" => {
+                    self.emit_str("cmp $0, %rax");
+                    self.emit_str("mov $0, %rax");
+                    self.emit_str("setz %al");
+                },
+                _ => panic!("Codegen unimplemented for unary operator \"{}\"", unar.operator)
+            }
         }
     }
 
