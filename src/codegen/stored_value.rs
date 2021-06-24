@@ -38,8 +38,9 @@ impl Codegen {
                     self.emit(format!("subq ${}, %rax", offset.abs()));
                 }
             },
-            ValueBackingStorage::Global(_ident) => {
-                unimplemented!("AddressOf global variable")
+            ValueBackingStorage::Global(ident) => {
+                let label = self.get_global_var_label(ident);
+                self.emit(format!("lea {}(%rip), %rax", label));
             }
         }
     }
