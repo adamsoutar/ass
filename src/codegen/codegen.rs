@@ -246,7 +246,10 @@ impl Codegen {
             };
 
             self.emit_global_alloc_from_constant(
-                &var.identifier,
+                &ASTNameAndType {
+                    name: var.identifier.clone(),
+                    param_type: var.var_type.clone()
+                },
                 constant_value
             );
         } else {

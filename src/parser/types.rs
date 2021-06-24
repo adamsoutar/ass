@@ -31,3 +31,22 @@ pub fn size_in_bytes (the_type: &Type) -> isize {
         Type::Pointer(_) => 8
     }
 }
+// Returns the number that should be put into .align for the type as a global
+pub fn power_of_two_alignment (the_type: &Type) -> usize {
+    match the_type {
+        Type::Char(_) => 0,
+        Type::Short(_) => 1,
+        Type::Int(_) => 2,
+        Type::LongLongInt(_) => 3,
+        Type::Pointer(_) => 3
+    }
+}
+pub fn global_literal_name (the_type: &Type) -> String {
+    match the_type {
+        Type::Char(_) => ".byte",
+        Type::Short(_) => ".short",
+        Type::Int(_) => ".long",
+        Type::LongLongInt(_) => ".quad",
+        Type::Pointer(_) => ".quad"
+    }.to_string()
+}

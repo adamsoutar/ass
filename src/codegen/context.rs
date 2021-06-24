@@ -49,20 +49,23 @@ impl Codegen {
         // println!(" = RUNTIME SCOPE ENDED = (mutate: {})", mutate_stack_offset);
     }
 
-    pub fn emit_global_alloc_from_constant (&mut self, name: &String, value: isize) {
-        let label = self.get_global_var_label(name);
+    pub fn emit_global_alloc_from_constant (&mut self, var: &ASTNameAndType, value: isize) {
+        let label = self.get_global_var_label(&var.name);
+        let align_pot = power_of_two_alignment(&var.param_type);
+        let literal_name = global_literal_name(&var.param_type);
+
         self.emit(format!(".globl {}", label));
         self.emit_str(".data");
-        self.emit_str(".align 3"); // 2 to the power of 3, 8 bytes - 64 bit
+        self.emit(format!(".align {}", align_pot));
         self.emit(format!("{}:", label));
-        self.emit(format!(".quad {}", value));
+        self.emit(format!("{} {}", literal_name, value));
         self.emit_str(".text");
 
         let latest = self.var_context.len() - 1;
         let map = &mut self.var_context[latest];
 
-        map.insert(name.clone(), StoredValue {
-            backing_store: ValueBackingStorage::Global(name.clone()),
+        map.insert(var.name.clone(), StoredValue {
+            backing_store: ValueBackingStorage::Global(var.name.clone()),
             value_type: Type::Int(IntegerTypeMetadata {
                 signed: true
             })
