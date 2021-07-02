@@ -47,7 +47,16 @@ impl Codegen {
     fn emit_for_block (&mut self, block: &Vec<ASTNode>, is_function_body_scope: bool) {
         // Function scopes are alloced beforehand to put arguments into.
         if !is_function_body_scope { self.begin_var_scope(); }
-        for node in block { self.emit_for_node(node) }
+        for node in block {
+            if self.func_has_unconditional_return {
+                eprintln!("[warn] Dead code detected at:");
+                print_ast_node(node, 1);
+                eprintln!("[info] Skipping rest of function due to dead code elimination");
+                break;
+            }
+
+            self.emit_for_node(node)
+        }
         self.end_runtime_var_scope(true);
         self.end_compiletime_var_scope();
     }
