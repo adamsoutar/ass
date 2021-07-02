@@ -23,7 +23,13 @@ pub struct Codegen {
     // A stack of hashmaps of local var names to stack offsets
     pub var_context: Vec<HashMap<String, StoredValue>>,
     pub stack_offset: isize,
-    pub block_depth: usize
+    pub block_depth: usize,
+    // Indicates whether we're emitting inside code that will
+    // not necessarily execute (if, for, while, etc.) For example, we
+    // can detect whether a function is guaranteed to return or not.
+    pub conditional_code_depth: usize,
+    // Detects whether a function can end without returning
+    pub func_has_unconditional_return: bool
 }
 
 impl Codegen {
@@ -52,6 +58,9 @@ impl Codegen {
                 self.emit(format!("mov ${}, %rax", int))
             },
             ASTNode::ReturnStatement(ret) => {
+                if self.conditional_code_depth == 0 {
+                    self.func_has_unconditional_return = true;
+                }
                 self.emit_for_node(&ret);
                 self.end_runtime_var_scope(false);
                 self.emit_function_epilogue(false);
@@ -152,11 +161,16 @@ impl Codegen {
             // Dealloc args
             // self.end_var_scope_without_dealloc();
 
-            self.emit_function_epilogue(true);
+            if !self.func_has_unconditional_return {
+                // We couldn't guarantee that the function will return a value
+                self.emit_function_epilogue(true);
+            }
         }
     }
 
     fn emit_for_if_statement (&mut self, if_stmt: &ASTIfStatement) {
+        self.conditional_code_depth += 1;
+
         self.emit_for_node(&if_stmt.condition);
         self.emit_str("cmp $0, %rax");
 
@@ -174,9 +188,13 @@ impl Codegen {
         }
 
         self.emit(format!("{}:", skip_label));
+
+        self.conditional_code_depth -= 1;
     }
 
     fn emit_for_while_loop (&mut self, while_loop: &ASTWhileLoop) {
+        self.conditional_code_depth += 1;
+
         let start_label = self.get_unique_label("while_start");
         let end_label = self.get_unique_label("while_end");
         self.emit(format!("{}:", start_label));
@@ -193,10 +211,14 @@ impl Codegen {
         self.emit(format!("jmp {}", start_label));
 
         self.emit(format!("{}:", end_label));
+
+        self.conditional_code_depth -= 1;
     }
 
     // Not a typo :)
     fn emit_for_for_loop (&mut self, for_loop: &ASTForLoop) {
+        self.conditional_code_depth += 1;
+
         // Alloc a higher scope for the loop counter - it can be
         // shadowed from within
         self.begin_var_scope();
@@ -232,6 +254,8 @@ impl Codegen {
 
         self.end_runtime_var_scope(true);
         self.end_compiletime_var_scope();
+
+        self.conditional_code_depth -= 1;
     }
 
     fn emit_for_variable_declaration (&mut self, var: &ASTVariableDeclaration) {
@@ -467,7 +491,9 @@ impl Codegen {
             counter: 0,
             var_context: vec![],
             stack_offset: 0,
-            block_depth: 0
+            block_depth: 0,
+            conditional_code_depth: 0,
+            func_has_unconditional_return: false
         }
     }
 }
