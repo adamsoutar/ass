@@ -174,6 +174,7 @@ impl Codegen {
                 // We couldn't guarantee that the function will return a value
                 self.emit_function_epilogue(true);
             }
+            self.func_has_unconditional_return = false;
         }
     }
 
