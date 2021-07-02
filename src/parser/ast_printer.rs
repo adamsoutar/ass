@@ -7,7 +7,7 @@ pub fn print_at_depth (s: String, depth: isize) {
         str += &String::from(" ");
     }
     str += &s;
-    println!("{}", str);
+    eprintln!("{}", str);
 }
 
 pub fn print_ast_node (node: &ASTNode, depth: isize) {
