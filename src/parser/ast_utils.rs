@@ -13,7 +13,8 @@ pub enum ASTNode {
     IfStatement(ASTIfStatement),
     FunctionCall(ASTFunctionCall),
     WhileLoop(ASTWhileLoop),
-    ForLoop(ASTForLoop)
+    ForLoop(ASTForLoop),
+    StringLiteral(String)
 }
 
 #[derive(Clone, PartialEq)]

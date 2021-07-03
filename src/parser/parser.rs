@@ -151,6 +151,7 @@ impl Parser {
 
         match t {
             Token::Integer(int) => return ASTNode::IntegerLiteral(int),
+            Token::String(st) => return ASTNode::StringLiteral(st),
             Token::Character(ch) => return ASTNode::IntegerLiteral(ch as isize),
             Token::Identifier(ident) => return ASTNode::Identifier(ident),
             Token::Operator(oper) => return self.parse_unary_operation(oper),

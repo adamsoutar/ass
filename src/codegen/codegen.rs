@@ -105,12 +105,19 @@ impl Codegen {
             ASTNode::ForLoop(for_loop) => {
                 self.emit_for_for_loop(for_loop)
             },
-            #[allow(unreachable_patterns)]
-            _ => {
-                print_ast_node(node, 0);
-                panic!("Node not supported in codegen")
+            ASTNode::StringLiteral(st) => {
+                self.emit_for_string_literal(&st)
             }
         }
+    }
+
+    fn emit_for_string_literal (&mut self, st: &String) {
+        self.emit_str(".data");
+        let label = self.get_unique_label("string");
+        self.emit(format!("{}:", label));
+        self.emit(format!(".string \"{}\"", st));
+        self.emit_str(".text");
+        self.emit(format!("lea {}(%rip), %rax", label));
     }
 
     fn emit_for_function_call (&mut self, func_call: &ASTFunctionCall) {

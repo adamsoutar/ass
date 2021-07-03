@@ -104,6 +104,9 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
             }
             print_at_depth("Body:".to_string(), depth + 1);
             print_ast_node(&for_loop.body, depth + 2);
+        },
+        ASTNode::StringLiteral(st) => {
+            print_at_depth(format!("String: \"{}\"", st), depth);
         }
     }
 }

@@ -39,9 +39,21 @@ impl Tokeniser {
             self.current = self.read_operator(c);
         } else if c == '\'' {
             self.current = self.read_character_literal();
+        } else if c == '"' {
+            self.current = self.read_string_literal();
         } else {
             panic!("Unrecognised character \"{}\"", c)
         }
+    }
+
+    fn read_string_literal (&mut self) -> Token {
+        let mut str_vec = vec![];
+        while !self.code.eof && self.code.peek() != '"' {
+            str_vec.push(self.code.read());
+        }
+        self.code.read();
+
+        Token::String(str_vec.iter().collect())
     }
 
     fn read_character_literal (&mut self) -> Token {
