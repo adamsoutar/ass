@@ -37,9 +37,17 @@ impl Tokeniser {
             self.current = Token::Punctuation(c);
         } else if is_operator_char(&c) {
             self.current = self.read_operator(c);
+        } else if c == '\'' {
+            self.current = self.read_character_literal();
         } else {
             panic!("Unrecognised character \"{}\"", c)
         }
+    }
+
+    fn read_character_literal (&mut self) -> Token {
+        let char_val = self.code.read();
+        self.expect_char('\'');
+        Token::Character(char_val)
     }
 
     fn read_operator (&mut self, first: char) -> Token {
@@ -83,6 +91,13 @@ impl Tokeniser {
         }
         let st = String::from_iter(vc);
         Token::Integer(st.parse().unwrap())
+    }
+
+    fn expect_char (&mut self, ch: char) {
+        let next = self.code.read();
+        if next != ch {
+            panic!("Expected '{}' but got '{}'", ch, next)
+        }
     }
 
     fn is_comment_coming (&self, first: char) -> bool {

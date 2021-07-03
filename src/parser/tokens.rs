@@ -4,7 +4,8 @@ pub enum Token {
     Keyword(String),
     Integer(isize),
     Operator(String),
-    Punctuation(char)
+    Punctuation(char),
+    Character(char)
 }
 
 // TODO: Don't redefine the vectors in each
