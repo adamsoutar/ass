@@ -107,6 +107,9 @@ impl Codegen {
             },
             ASTNode::StringLiteral(st) => {
                 self.emit_for_string_literal(&st)
+            },
+            ASTNode::ArrayAccess(access) => {
+                unimplemented!()
             }
         }
     }

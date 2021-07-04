@@ -40,9 +40,10 @@ impl Parser {
 
         while !self.tokeniser.eof {
             let (was_call, call_node) = self.maybe_call(node);
-            node = call_node;
+            let (was_access, access_node) = self.maybe_array_access(call_node);
+            node = access_node;
 
-            if !was_call { break; }
+            if !(was_call || was_access) { break; }
         }
 
         let bin = self.maybe_binary_operation(node, precedence);
@@ -56,6 +57,21 @@ impl Parser {
         if self.is_next_punctuation(';') {
             self.tokeniser.read();
         }
+    }
+
+    fn maybe_array_access (&mut self, me: ASTNode) -> (bool, ASTNode) {
+        if !self.is_next_punctuation('[') {
+            return (false, me);
+        }
+        self.tokeniser.read();
+
+        let property = self.parse_component(0);
+        self.expect_punctuation(']');
+
+        (true, ASTNode::ArrayAccess(ASTArrayAccess {
+            lhs: Box::new(me),
+            property: Box::new(property)
+        }))
     }
 
     fn maybe_call (&mut self, me: ASTNode) -> (bool, ASTNode) {

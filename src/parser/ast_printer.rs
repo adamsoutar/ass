@@ -107,6 +107,13 @@ pub fn print_ast_node (node: &ASTNode, depth: isize) {
         },
         ASTNode::StringLiteral(st) => {
             print_at_depth(format!("String: \"{}\"", st), depth);
+        },
+        ASTNode::ArrayAccess(access) => {
+            print_at_depth("Array access:".to_string(), depth);
+            print_at_depth("Left hand side:".to_string(), depth + 1);
+            print_ast_node(&access.lhs, depth + 2);
+            print_at_depth("Property:".to_string(), depth + 1);
+            print_ast_node(&access.property, depth + 2);
         }
     }
 }

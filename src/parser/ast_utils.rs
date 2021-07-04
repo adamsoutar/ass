@@ -14,7 +14,8 @@ pub enum ASTNode {
     FunctionCall(ASTFunctionCall),
     WhileLoop(ASTWhileLoop),
     ForLoop(ASTForLoop),
-    StringLiteral(String)
+    StringLiteral(String),
+    ArrayAccess(ASTArrayAccess)
 }
 
 #[derive(Clone, PartialEq)]
@@ -79,4 +80,10 @@ pub struct ASTForLoop {
     // Run at the end(!) of every iteration
     pub modification: Option<Box<ASTNode>>,
     pub body: Box<ASTNode>
+}
+
+#[derive(Clone, PartialEq)]
+pub struct ASTArrayAccess {
+    pub lhs: Box<ASTNode>,
+    pub property: Box<ASTNode>
 }
