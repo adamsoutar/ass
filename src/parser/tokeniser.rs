@@ -22,11 +22,11 @@ impl Tokeniser {
         while self.is_comment_coming(c) {
             self.eat_comment();
             c = self.code.read();
-        }
-        // TODO: De-duplication?
-        if self.code.eof {
-            self.eof = true;
-            return
+            // Edge-case where code ends with a comment
+            if self.code.eof {
+                self.eof = true;
+                return
+            }
         }
 
         if is_number(&c) {
