@@ -19,13 +19,14 @@ _Note:_ ass is not an assembler or linker. See `compile.sh` for assembling binar
 
 ## Implemented features
 
- - **Variables** Stack based `int` variables (no other types at the moment)
- - **Functions** Functions + arguments can be defined and called
- - **StdLib** Call into standard library functions like `putchar`
- - **If statements** With optional `else`
- - **For loops** Including unusual loop declarations like `(;;)`
+- **Variables** Local, stack-based and global variables of all primitive types besides floats/doubles
+- **Pointers** Pointers, dereferencing, and the addressOf operator
+- **Functions** Functions + arguments can be defined and called
+- **StdLib** Call into standard library functions like `printf`
+- **If statements** With optional `else`
+- **Loops** Including unusual loop declarations like `(;;)`
 
-**Plus** while loops, binary operators, return statements and more
+**Plus** Probably more since I wrote this readme :)
 
 ## Examples
 
